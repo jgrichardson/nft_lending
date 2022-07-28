@@ -95,7 +95,8 @@ def find_beta(df, contract_ids):
         betas_dict[f"{con}_beta"] = con_beta 
     return betas_dict
 
-def find_avg_price(df, contract_ids):
+def find_avg_price(input_df, contract_ids):
+    df = input_df.copy()
     coll_names = [] 
     counter = 0
     for k in contract_ids.keys():
@@ -106,7 +107,8 @@ def find_avg_price(df, contract_ids):
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
 
-def find_max_price(df, contract_ids):
+def find_max_price(input_df, contract_ids):
+    df = input_df.copy()
     coll_names = [] 
     counter = 0
     for k in contract_ids.keys():
@@ -117,7 +119,8 @@ def find_max_price(df, contract_ids):
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
 
-def find_min_price(df, contract_ids):
+def find_min_price(input_df, contract_ids):
+    df = input_df.copy()
     coll_names = [] 
     counter = 0
     for k in contract_ids.keys():
@@ -125,6 +128,18 @@ def find_min_price(df, contract_ids):
     for col in df.columns:
         if "min_price" in col:
             df[f"{coll_names[counter]}_mean_min_price"] = df[col].mean()
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_volume(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = [] 
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "vol" in col:
+            df[f"{coll_names[counter]}_mean_vol"] = df[col].mean()
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
 
