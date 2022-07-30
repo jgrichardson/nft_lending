@@ -31,7 +31,7 @@ def drop_tables():
         DROP TABLE IF EXISTS Contracts;
         """,
         """
-        DROP TABLE IF EXISTS Contracts_Mapper;
+        DROP TABLE IF EXISTS Contract_Maps;
         """,
         """
         DROP TABLE IF EXISTS Whales;
