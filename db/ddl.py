@@ -37,7 +37,7 @@ def drop_tables():
         DROP TABLE IF EXISTS Whales;
         """,
         """
-        DROP TABLE IF EXISTS Exchanges;
+        DROP TABLE IF EXISTS Apis;
         """,
         """
         DROP TABLE IF EXISTS Trades;
@@ -59,7 +59,7 @@ def create_tables():
         """
         CREATE TABLE Networks (
             network_id VARCHAR(50) PRIMARY KEY,
-            name VARCHAR(100)
+            short_name VARCHAR(50)
         )
         """,
         """
@@ -70,20 +70,20 @@ def create_tables():
         )
         """,
         """
-        CREATE TABLE Contracts_Mapper (
-            old_contract_id VARCHAR(50),
+        CREATE TABLE Contract_Maps (
+            contract_id VARCHAR(50),
             new_contract_id VARCHAR(50)
         )
         """,
         """
         CREATE TABLE Whales (
-            wallet_address VARCHAR(50),
+            wallet_id VARCHAR(50),
             contract_id VARCHAR(50)
         )
         """,
         """
-        CREATE TABLE Exchanges (
-            exchange_id VARCHAR(50) PRIMARY KEY,
+        CREATE TABLE APIs (
+            api_id VARCHAR(50) PRIMARY KEY,
             name VARCHAR(100),
             url VARCHAR(250)
         )
@@ -101,7 +101,7 @@ def create_tables():
             ceiling_price NUMERIC,
             volume INT,
             period VARCHAR(10),
-            exchange_id VARCHAR(50)
+            api_id VARCHAR(50)
         )
         """
     ]
