@@ -105,10 +105,7 @@ def update_trade(df):
     """
     This function updates the trade table
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """
     update_query = f"""
     UPDATE {database_schema}.trade
@@ -131,10 +128,7 @@ def insert_trade(df):
     """
     This function inserts a new trade
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """    
     insert_query = f"""
     INSERT INTO {database_schema}.trade (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
@@ -148,10 +142,7 @@ def save_trade(df):
     """
     This function saves the collection data into a postgres database residing in AWS
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """    
     for row_index in df.index: 
         # First check if the trade exists
@@ -237,8 +228,16 @@ def update_contract(contract_id, df):
     """
     update_query = f"""
     UPDATE {database_schema}.contract
-    SET name  = '{df['name']}',
-        network_id = '{df['network_id']}'
+    SET address = '{df['address']}',
+        name  = '{df['name']}',
+        description = '{df['description']}',
+        external_url = '{df['external_url']}',
+        network_id = '{df['network_id']}',
+        primary_interface = '{df['primary_interface']}',
+        royalties_fee_basic_points = {df['royalties_fee_basic_points']},
+        royalties_receiver = '{df['royalties_receiver']}',
+        num_tokens = {df['num_tokens']},
+        unique_owners = {df['unique_owners']}
     WHERE contract_id = '{contract_id}'
     """    
     with engine.connect() as conn:
@@ -253,8 +252,8 @@ def insert_contract(contract_id, df):
           df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.contract (contract_id, name, network_id)
-    VALUES ('{contract_id}', '{df['name']}', '{df['network_id']}')
+    INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners)
+    VALUES ('{contract_id}', '{df['address']}', '{df['name']}', '{df['description']}','{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {df['royalties_fee_basic_points']}, '{df['royalties_receiver']}', {df['num_tokens']}, {df['unique_owners']})
     """    
     with engine.connect() as conn:
         conn.execute(insert_query)
@@ -264,8 +263,7 @@ def save_contract(contract_df):
     """
     This function saves the contract data into a postgres database residing in AWS
     
-    Args: contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of contracts
     """    
     for row_index in contract_df.index: 
         contract_id = contract_df['contract_id'][row_index]
@@ -731,3 +729,119 @@ def save_contract_maps(contract_id, df):
             update_contract_map(contract_id, df.iloc[row_index])
         else:
             insert_contract_map(contract_id, df.iloc[row_index])                                
+
+
+
+"""
+
+    CRUD Operations for the Tokens table
+
+"""
+def get_all_tokens():
+    """
+    This function returns a list of all the tokens per a contract
+
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token  
+    """    
+    df = pd.read_sql_query(sql_query, con = engine)    
+    return df
+
+
+def get_token(token_id):
+    """
+    This function returns information for a specific token  
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token  
+    WHERE token_id = '{token_id}'
+    """        
+    df = pd.read_sql_query(sql_query, con = engine)                
+    return df
+
+
+def delete_token(token_id):
+    """
+    This function deletes a specific token
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    """       
+    delete_query = f"""
+    DELETE FROM {database_schema}.token  
+    WHERE token_id = '{token_id}'
+    """    
+    with engine.connect() as conn:
+        conn.execute(delete_query)
+        print(f"{token_id} was successfully deleted!")
+
+
+def check_if_token_exists(token_id):
+    """
+    This function calls get_token to check if the token already exists.  
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: Boolean
+    """        
+    df = get_token(token_id)
+    if len(df.index) > 0:
+        return True        
+    return False
+    
+
+def update_token(token_id, df):
+    """
+    This function updates the token information
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of token data
+    """
+    update_query = f"""
+    UPDATE {database_schema}.token
+    SET id_number = '{df['id_number']}',
+        name  = '{df['name']}',
+        description = '{df['description']}',
+        contract_id = '{df['contract_id']}'
+    WHERE token_id = '{token_id}'
+    """    
+    with engine.connect() as conn:
+        conn.execute(update_query)
+
+
+def insert_token(token_id, df):
+    """
+    This function inserts a new token
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of trades
+    """    
+    insert_query = f"""
+    INSERT INTO {database_schema}.token (token_id, id_number, name, description, contract_id)
+    VALUES ('{token_id}', '{df['id_number']}', '{df['name']}', '{df['description']}', '{df['contract_id']}')
+    """    
+    with engine.connect() as conn:
+        conn.execute(insert_query)
+    
+
+def save_token(token_df):
+    """
+    This function saves the token data into a postgres database residing in AWS
+    
+    Args: df - data collection of tokens thats part of a specific contract i.e. Collection
+    """    
+    for row_index in token_df.index: 
+        token_id = token_df['token_id'][row_index]
+        # First check if the token exists
+        token_exists = check_if_token_exists(token_id)
+        
+        # If the token exists then we update the information.  Otherwise, we add a new token
+        if token_exists:
+            update_token(token_id, token_df.iloc[row_index])
+        else:
+            insert_token(token_id, contract_df.iloc[row_index])                                

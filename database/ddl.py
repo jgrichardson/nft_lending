@@ -34,6 +34,9 @@ def drop_tables():
         DROP TABLE IF EXISTS Contract_Map;
         """,
         """
+        DROP TABLE IF EXISTS Token;
+        """,
+        """
         DROP TABLE IF EXISTS Whale;
         """,
         """
@@ -64,21 +67,38 @@ def create_tables():
         """,
         """
         CREATE TABLE Contract(
-            contract_id VARCHAR(50) PRIMARY KEY,
+            contract_id VARCHAR(80) PRIMARY KEY,
+            address VARCHAR(50),               
             name VARCHAR(100),
-            network_id VARCHAR(50)
+            description VARCHAR(1500),         
+            external_url VARCHAR(250),            
+            network_id VARCHAR(50),
+            primary_interface VARCHAR(50),
+            royalties_fee_basic_points INT,
+            royalties_receiver VARCHAR(50),
+            num_tokens INT,
+            unique_owners INT
         )
         """,
         """
         CREATE TABLE Contract_Map(
-            contract_id VARCHAR(50),
-            new_contract_id VARCHAR(50)
+            contract_id VARCHAR(80),
+            new_contract_id VARCHAR(80)
+        )
+        """,
+        """
+        CREATE TABLE Token(
+            token_id VARCHAR(80),
+            id_number VARCHAR(10),
+            name VARCHAR(100),
+            description VARCHAR(1500),
+            contract_id VARCHAR(80)
         )
         """,
         """
         CREATE TABLE Whale(
             wallet_id VARCHAR(50),
-            contract_id VARCHAR(50)
+            contract_id VARCHAR(80)
         )
         """,
         """
@@ -90,7 +110,7 @@ def create_tables():
         """,
         """
         CREATE TABLE Trade(
-            contract_id VARCHAR(50) NOT NULL,
+            contract_id VARCHAR(80) NOT NULL,
             timestamp TIMESTAMP NOT NULL,
             avg_price NUMERIC,
             max_price NUMERIC,
