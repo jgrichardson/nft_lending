@@ -20,8 +20,7 @@ def fetch_rarify_data(url, key):
         url,
         headers={"Authorization": f"Bearer {key}"}
     ).json()
-    #display(sale_history_data)
-    return sale_history_data['included'][1]['attributes']['history']
+    return sale_history_data
 
 
 load_dotenv()
@@ -31,6 +30,7 @@ print(type(rarify_api_key))
 
 
 network_id = "ethereum"
+
 # Crypto Punks
 contract_id = "b47e3cd837ddf8e4c57f05d70ab865de6e193bbb"
 
@@ -44,23 +44,8 @@ token_id = 9620
 token_baseurl = f"https://api.rarify.tech/data/tokens/{network_id}:{contract_id}:{token_id}"
 
 
-punks_return = fetch_rarify_data(collections_baseurl, rarify_api_key)
-punks_df = pd.DataFrame(punks_return)
-punks_df['time'] = pd.to_datetime(punks_df['time'], infer_datetime_format=True)
-punks_df = punks_df.set_index('time')
-punks_df.head()
-
-convert_dict = {'avg_price': float,
-                'max_price': float,
-                'min_price': float,
-                'trades': int,
-                'unique_buyers': int,
-                'volume':  float,
-               }  
-  
-punks_df = punks_df.astype(convert_dict)  
-punks_df[['avg_price', 'max_price', 'min_price', 'volume']] = punks_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
-punks_df.head()
+json_data = fetch_rarify_data(collections_baseurl, rarify_api_key)
+print(json_data)
 
 
 
