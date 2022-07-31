@@ -844,4 +844,4 @@ def save_token(token_df):
         if token_exists:
             update_token(token_id, token_df.iloc[row_index])
         else:
-            insert_token(token_id, contract_df.iloc[row_index])                                
+            insert_token(token_id, token_df.iloc[row_index])                                
