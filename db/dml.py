@@ -26,7 +26,7 @@ def delete_network_data():
     """ Delete System Data"""
     delete_networks = [ 
         f"""
-        DELETE FROM {database_schema}.networks
+        DELETE FROM {database_schema}.network
         """            
     ]
 
@@ -45,19 +45,19 @@ def add_network_data():
     """ Insert System Data"""
     insert_networks = [ 
         f"""
-        INSERT INTO {database_schema}.networks (network_id, short_name)
+        INSERT INTO {database_schema}.network (network_id, short_name)
         VALUES ('bitcoin', 'BTC')
         """,    
         f"""
-        INSERT INTO {database_schema}.networks (network_id, short_name)
+        INSERT INTO {database_schema}.network (network_id, short_name)
         VALUES ('ethereum', 'ETH')        
         """,
         f"""
-        INSERT INTO {database_schema}.networks (network_id, short_name)
+        INSERT INTO {database_schema}.network (network_id, short_name)
         VALUES ('solana', 'SOL')        
         """,
         f"""
-        INSERT INTO {database_schema}.networks (network_id, short_name)
+        INSERT INTO {database_schema}.network (network_id, short_name)
         VALUES ('xrp', 'XRP')        
         """                
     ]
@@ -77,7 +77,7 @@ def delete_api_data():
     """ Delete System Data"""
     delete_apis = [ 
         f"""
-        DELETE FROM {database_schema}.apis
+        DELETE FROM {database_schema}.api
         """            
     ]
 
@@ -96,7 +96,7 @@ def add_api_data():
     """ Insert System Data"""
     insert_apis = [ 
         f"""
-        INSERT INTO {database_schema}.apis (api_id, name, url)
+        INSERT INTO {database_schema}.api (api_id, name, url)
         VALUES ('rarify', 'The Rarify NFT APIs', 'https://api.rarify.tech/data/')
         """   
     ]

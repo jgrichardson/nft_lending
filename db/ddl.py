@@ -25,22 +25,22 @@ def drop_tables():
     """ drop tables in the database"""
     drop_tbls = [
         """
-        DROP TABLE IF EXISTS Networks;
+        DROP TABLE IF EXISTS Network;
         """,
         """
-        DROP TABLE IF EXISTS Contracts;
+        DROP TABLE IF EXISTS Contract;
         """,
         """
-        DROP TABLE IF EXISTS Contract_Maps;
+        DROP TABLE IF EXISTS Contract_Map;
         """,
         """
-        DROP TABLE IF EXISTS Whales;
+        DROP TABLE IF EXISTS Whale;
         """,
         """
-        DROP TABLE IF EXISTS Apis;
+        DROP TABLE IF EXISTS Api;
         """,
         """
-        DROP TABLE IF EXISTS Trades;
+        DROP TABLE IF EXISTS Trade;
         """
     ]
     try:
@@ -57,39 +57,39 @@ def create_tables():
     """ create tables in the database"""
     create_tbls = [
         """
-        CREATE TABLE Networks (
+        CREATE TABLE Network(
             network_id VARCHAR(50) PRIMARY KEY,
             short_name VARCHAR(50)
         )
         """,
         """
-        CREATE TABLE Contracts (
+        CREATE TABLE Contract(
             contract_id VARCHAR(50) PRIMARY KEY,
             name VARCHAR(100),
             network_id VARCHAR(50)
         )
         """,
         """
-        CREATE TABLE Contract_Maps (
+        CREATE TABLE Contract_Map(
             contract_id VARCHAR(50),
             new_contract_id VARCHAR(50)
         )
         """,
         """
-        CREATE TABLE Whales (
+        CREATE TABLE Whale(
             wallet_id VARCHAR(50),
             contract_id VARCHAR(50)
         )
         """,
         """
-        CREATE TABLE APIs (
+        CREATE TABLE API(
             api_id VARCHAR(50) PRIMARY KEY,
             name VARCHAR(100),
             url VARCHAR(250)
         )
         """,
         """
-        CREATE TABLE Trades (
+        CREATE TABLE Trade(
             contract_id VARCHAR(50) NOT NULL,
             timestamp TIMESTAMP NOT NULL,
             avg_price NUMERIC,
@@ -119,7 +119,7 @@ def add_constraints():
     """ add unique constraints to tables in the database"""
     unique_constraints = [
         """
-        ALTER TABLE Trades
+        ALTER TABLE Trade
         ADD CONSTRAINT contract_timestamp UNIQUE (contract_id, timestamp);
         """
     ]

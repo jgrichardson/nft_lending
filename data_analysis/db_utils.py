@@ -43,7 +43,7 @@ def get_all_trades(contract_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.trades   
+    FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
@@ -61,7 +61,7 @@ def get_trade(contract_id, time):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.trades   
+    FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     AND timestamp = '{time}'
     """        
@@ -78,7 +78,7 @@ def delete_trade(contract_id, time):
           time - the timestamp when the trade was made
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.trades   
+    DELETE FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     AND timestamp = '{time}'
     """    
@@ -111,7 +111,7 @@ def update_trade(df):
           df - data collection of trades
     """
     update_query = f"""
-    UPDATE {database_schema}.trades
+    UPDATE {database_schema}.trade
     SET avg_price  = {round(df['avg_price'], 2)},
         max_price  = {round(df['max_price'], 2)},
         min_price  = {round(df['min_price'], 2)},
@@ -137,7 +137,7 @@ def insert_trade(df):
           df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.trades (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
+    INSERT INTO {database_schema}.trade (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
     VALUES ('{df['contract_id']}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{df['period']}', '{df['api_id']}')
     """    
     with engine.connect() as conn:
@@ -178,7 +178,7 @@ def get_all_contracts():
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contracts   
+    FROM {database_schema}.contract   
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
     return df
@@ -193,7 +193,7 @@ def get_contract(contract_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contracts   
+    FROM {database_schema}.contract   
     WHERE contract_id = '{contract_id}'
     """        
     df = pd.read_sql_query(sql_query, con = engine)                
@@ -207,7 +207,7 @@ def delete_contract(contract_id):
     Args: contract_id - a collection's contract id
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.contracts   
+    DELETE FROM {database_schema}.contract   
     WHERE contract_id = '{contract_id}'
     """    
     with engine.connect() as conn:
@@ -236,7 +236,7 @@ def update_contract(contract_id, df):
           df - data collection of contract data
     """
     update_query = f"""
-    UPDATE {database_schema}.contracts
+    UPDATE {database_schema}.contract
     SET name  = '{df['name']}',
         network_id = '{df['network_id']}'
     WHERE contract_id = '{contract_id}'
@@ -253,7 +253,7 @@ def insert_contract(contract_id, df):
           df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.contracts (contract_id, name, network_id)
+    INSERT INTO {database_schema}.contract (contract_id, name, network_id)
     VALUES ('{contract_id}', '{df['name']}', '{df['network_id']}')
     """    
     with engine.connect() as conn:
@@ -293,7 +293,7 @@ def get_all_networks():
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.networks   
+    FROM {database_schema}.network   
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
     return df
@@ -308,7 +308,7 @@ def get_network(network_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.networks   
+    FROM {database_schema}.network   
     WHERE network_id = '{network_id}'
     """        
     df = pd.read_sql_query(sql_query, con = engine)                
@@ -322,7 +322,7 @@ def delete_network(network_id):
     Args: network_id - the id of a specific blockchain
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.networks   
+    DELETE FROM {database_schema}.network   
     WHERE network_id = '{network_id}'
     """    
     with engine.connect() as conn:
@@ -351,7 +351,7 @@ def update_network(network_id, df):
           df - data collection of network data
     """
     update_query = f"""
-    UPDATE {database_schema}.networks
+    UPDATE {database_schema}.network
     SET short_name  = '{df['short_name']}',
         network_id = '{df['network_id']}'
     WHERE network_id = '{network_id}'
@@ -368,7 +368,7 @@ def insert_network(network_id, df):
           df - data collection of networks
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.networks (network_id, short_name)
+    INSERT INTO {database_schema}.network (network_id, short_name)
     VALUES ('{network_id}', '{df['short_name']}')
     """    
     with engine.connect() as conn:
@@ -407,7 +407,7 @@ def get_all_api_requests():
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.apis   
+    FROM {database_schema}.api   
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
     return df
@@ -422,7 +422,7 @@ def get_api_request(api_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.apis   
+    FROM {database_schema}.api   
     WHERE api_id = '{api_id}'
     """        
     df = pd.read_sql_query(sql_query, con = engine)                
@@ -436,7 +436,7 @@ def delete_api_request(api_id):
     Args: api_id - the id of the api request
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.apis   
+    DELETE FROM {database_schema}.api   
     WHERE api_id = '{api_id}'
     """    
     with engine.connect() as conn:
@@ -465,7 +465,7 @@ def update_api_request(api_id, df):
           df - data collection of network data
     """
     update_query = f"""
-    UPDATE {database_schema}.apis
+    UPDATE {database_schema}.api
     SET name  = '{df['name']}',
         url = '{df['url']}'
     WHERE api_id = '{api_id}'
@@ -482,7 +482,7 @@ def insert_api_request(api_id, df):
           df - data collection of networks
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.apis (api_id, name, url)
+    INSERT INTO {database_schema}.api (api_id, name, url)
     VALUES ('{api_id}', '{df['name']}', '{df['url']}')
     """    
     with engine.connect() as conn:
@@ -521,7 +521,7 @@ def get_all_whales():
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.whales  
+    FROM {database_schema}.whale  
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
     return df
@@ -536,7 +536,7 @@ def get_whale(wallet_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.whales  
+    FROM {database_schema}.whale  
     WHERE network_id = '{wallet_id}'
     """        
     df = pd.read_sql_query(sql_query, con = engine)                
@@ -550,7 +550,7 @@ def delete_whale(wallet_id):
     Args: wallet_id - a whale's wallet address
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.whales  
+    DELETE FROM {database_schema}.whale  
     WHERE wallet_id = '{wallet_id}'
     """    
     with engine.connect() as conn:
@@ -579,7 +579,7 @@ def update_whale(wallet_id, df):
           df - data collection of whale's data
     """
     update_query = f"""
-    UPDATE {database_schema}.whales
+    UPDATE {database_schema}.whale
     SET contract_id  = '{df['contract_id']}',
     WHERE wallet_id = '{wallet_id}'
     """    
@@ -595,7 +595,7 @@ def insert_whale(wallet_id, df):
           df - data collection of networks
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.whales (wallet_id, contract_id)
+    INSERT INTO {database_schema}.whale (wallet_id, contract_id)
     VALUES ('{wallet_id}', '{df['contract_id']}')
     """    
     with engine.connect() as conn:
@@ -634,7 +634,7 @@ def get_all_contract_maps():
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contract_maps  
+    FROM {database_schema}.contract_map  
     """    
     df = pd.read_sql_query(sql_query, con = engine)    
     return df
@@ -649,7 +649,7 @@ def get_contract_maps(contract_id):
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contract_maps   
+    FROM {database_schema}.contract_map   
     WHERE contract_id = '{contract_id}'
     """        
     df = pd.read_sql_query(sql_query, con = engine)                
@@ -663,7 +663,7 @@ def delete_contract_maps(contract_id):
     Args: contract_id - a collection's contract id
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.contract_maps  
+    DELETE FROM {database_schema}.contract_map  
     WHERE contract_id = '{contract_id}'
     """    
     with engine.connect() as conn:
@@ -692,7 +692,7 @@ def update_contract_map(contract_id, df):
           df - data collection of contract data
     """
     update_query = f"""
-    UPDATE {database_schema}.contract_maps
+    UPDATE {database_schema}.contract_map
     SET   new_contract_id = {df['new_contract_id']}
     WHERE contract_id = '{contract_id}'
     """    
@@ -708,7 +708,7 @@ def insert_contract_map(contract_id, df):
           df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.contract_maps (contract_id, new_contract_id)
+    INSERT INTO {database_schema}.contract_map (contract_id, new_contract_id)
     VALUES ('{contract_id}', '{df['new_contract_id']}')
     """    
     with engine.connect() as conn:
