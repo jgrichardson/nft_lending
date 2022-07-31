@@ -85,7 +85,7 @@ def create_tables():
         CREATE TABLE API(
             api_id VARCHAR(50) PRIMARY KEY,
             name VARCHAR(100),
-            endpoint VARCHAR(250)
+            endpoint_url VARCHAR(250)
         )
         """,
         """

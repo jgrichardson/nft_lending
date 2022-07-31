@@ -96,7 +96,7 @@ def add_api_data():
     """ Insert System Data"""
     insert_apis = [ 
         f"""
-        INSERT INTO {database_schema}.api (api_id, name, endpoint)
+        INSERT INTO {database_schema}.api (api_id, name, endpoint_url)
         VALUES ('rarify', 'The Rarify NFT APIs', 'https://api.rarify.tech/data/')
         """   
     ]
