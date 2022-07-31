@@ -467,7 +467,7 @@ def update_api_request(api_id, df):
     update_query = f"""
     UPDATE {database_schema}.api
     SET name  = '{df['name']}',
-        url = '{df['url']}'
+        endpoint = '{df['endpoint']}'
     WHERE api_id = '{api_id}'
     """    
     with engine.connect() as conn:
@@ -482,8 +482,8 @@ def insert_api_request(api_id, df):
           df - data collection of networks
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.api (api_id, name, url)
-    VALUES ('{api_id}', '{df['name']}', '{df['url']}')
+    INSERT INTO {database_schema}.api (api_id, name, endpoint)
+    VALUES ('{api_id}', '{df['name']}', '{df['endpoint']}')
     """    
     with engine.connect() as conn:
         conn.execute(insert_query)
