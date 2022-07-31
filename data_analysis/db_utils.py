@@ -101,7 +101,7 @@ def check_if_trade_exists(contract_id, time):
     return False
     
 
-def update_trade(network_id, period, contract_id, df):
+def update_trade(df):
     """
     This function updates the trade table
     
@@ -118,15 +118,16 @@ def update_trade(network_id, period, contract_id, df):
         num_trades = {df['trades']},
         unique_buyers = {df['unique_buyers']},
         volume = {round(df['volume'], 2)},
-        period = '{period}'
-    WHERE contract_id = '{contract_id}'
+        period = '{df['period']}',
+        api_id = '{df['api_id']}'
+    WHERE contract_id = '{df['contract_id']}'
     AND timestamp = '{df['time']}'
     """    
     with engine.connect() as conn:
         conn.execute(update_query)
 
 
-def insert_trade(network_id, period, contract_id, df):
+def insert_trade(df):
     """
     This function inserts a new trade
     
@@ -136,14 +137,14 @@ def insert_trade(network_id, period, contract_id, df):
           df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.trades (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period)
-    VALUES ('{contract_id}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{period}')
+    INSERT INTO {database_schema}.trades (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
+    VALUES ('{df['contract_id']}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{df['period']}', '{df['api_id']}')
     """    
     with engine.connect() as conn:
         conn.execute(insert_query)
     
 
-def save_collection(network_id, period, contract_id, df):
+def save_trade(df):
     """
     This function saves the collection data into a postgres database residing in AWS
     
@@ -154,13 +155,13 @@ def save_collection(network_id, period, contract_id, df):
     """    
     for row_index in df.index: 
         # First check if the trade exists
-        trade_exists = check_if_trade_exists(contract_id, df.iloc[row_index]['time'])
+        trade_exists = check_if_trade_exists(df.iloc[row_index]['contract_id'], df.iloc[row_index]['time'])
         
         # If the trade exists then we update the information.  Otherwise, we add a new trade
         if trade_exists:
-            update_trade(network_id, period, contract_id, df.iloc[row_index])
+            update_trade(df.iloc[row_index])
         else:
-            insert_trade(network_id, period, contract_id, df.iloc[row_index])                    
+            insert_trade(df.iloc[row_index])                    
 
 
 
@@ -236,8 +237,8 @@ def update_contract(contract_id, df):
     """
     update_query = f"""
     UPDATE {database_schema}.contracts
-    SET name  = {df['name']},
-        network_id = {df['network_id']}
+    SET name  = '{df['name']}',
+        network_id = '{df['network_id']}'
     WHERE contract_id = '{contract_id}'
     """    
     with engine.connect() as conn:
@@ -259,22 +260,23 @@ def insert_contract(contract_id, df):
         conn.execute(insert_query)
     
 
-def save_contract(contract_id, df):
+def save_contract(contract_df):
     """
     This function saves the contract data into a postgres database residing in AWS
     
     Args: contract_id - a collection's contract id
           df - data collection of trades
     """    
-    for row_index in df.index: 
+    for row_index in contract_df.index: 
+        contract_id = contract_df['contract_id'][row_index]
         # First check if the contract exists
         contract_exists = check_if_contract_exists(contract_id)
         
         # If the contract exists then we update the information.  Otherwise, we add a new contract
         if contract_exists:
-            update_contract(contract_id, df.iloc[row_index])
+            update_contract(contract_id, contract_df.iloc[row_index])
         else:
-            insert_contract(contract_id, df.iloc[row_index])                                
+            insert_contract(contract_id, contract_df.iloc[row_index])                                
 
 
 
