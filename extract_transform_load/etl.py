@@ -107,7 +107,6 @@ db.save_contract(contracts_df)
 # for index, contract in contracts_df.iterrows():
 contracts_list = contracts_df.contract_id.values.tolist()
 
-"""
 for contract_id in contracts_list:    
     # Get the trade data for a specific contract from the past period
     trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
@@ -123,8 +122,6 @@ for contract_id in contracts_list:
     # Make call db.save_trade() passing in a list of trades history data per contract
     trades_df.set_index("time")
     db.save_trade(trades_df)
-"""
-
 
 for contract_id in contracts_list:
     # Get list of tokens

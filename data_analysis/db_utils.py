@@ -1,8 +1,15 @@
 import pandas as pd
+import math
+import re
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
+import logging
+
+# Get Logger
+logging.basicConfig(filename='db_utils.log', filemode='w', level=logging.DEBUG, format='%(levelname)s: %(asctime)s - %(message)s')
+logger = logging.getLogger()
 
 # Load .env environment variables
 load_dotenv()
@@ -23,9 +30,50 @@ def get_all_table_names():
 
     Returns: List
     """
-    inspector = inspect(engine)
-    tables = inspector.get_table_names(database_schema)
-    return tables
+    try:
+        inspector = inspect(engine)
+        tables = inspector.get_table_names(database_schema)
+        return tables
+    except Exception as ex:    
+        logger.error(ex)  
+
+
+
+def scrub_str(str):
+    """
+    This function checks for none objects as well as cleans up any characters which
+    would result into an exception being thrown
+
+    Args: str - object to analyze
+    Returns: string object
+    """
+    if str is not None:
+        if str.isdigit():
+            return str(str)
+        str = re.sub(r"[\([{'})\]]", "", str)
+        str = re.sub(r"%", " pct.", str)
+        return str
+    else:
+        return ''
+
+
+
+
+def scrub_int(num):
+    """
+    This function checks for none objects 
+
+    Args: num - numeric object to analyze
+    Returns: number
+    """
+    if num is not None:
+        if math.isnan(num):
+            return 0
+        if num == 0.0:
+            return 0
+        return num
+    else:
+        return 0
 
 
 
@@ -46,8 +94,12 @@ def get_all_trades(contract_id):
     FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex)      
 
 
 def get_trade(contract_id, time):
@@ -64,9 +116,13 @@ def get_trade(contract_id, time):
     FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     AND timestamp = '{time}'
-    """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    """
+    try:        
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex: 
+        logger.debug(sql_query)   
+        logger.error(ex)  
 
 
 def delete_trade(contract_id, time):
@@ -81,10 +137,14 @@ def delete_trade(contract_id, time):
     DELETE FROM {database_schema}.trade   
     WHERE contract_id = '{contract_id}'
     AND timestamp = '{time}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"The trade for {contract_id} at {time} was successfully deleted!")
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"The trade for {contract_id} at {time} was successfully deleted!")
+    except Exception as ex:   
+        logger.debug(delete_query) 
+        logger.error(ex)  
 
 
 def check_if_trade_exists(contract_id, time):
@@ -94,21 +154,21 @@ def check_if_trade_exists(contract_id, time):
     Args: contract_id - a collection's contract id
           time - the timestamp when the trade was made
     Returns: Boolean
-    """        
-    df = get_trade(contract_id, time)
-    if len(df.index) > 0:
-        return True        
-    return False
-    
+    """  
+    try:      
+        df = get_trade(contract_id, time)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:    
+        logger.error(ex)      
+
 
 def update_trade(df):
     """
     This function updates the trade table
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """
     update_query = f"""
     UPDATE {database_schema}.trade
@@ -122,36 +182,38 @@ def update_trade(df):
         api_id = '{df['api_id']}'
     WHERE contract_id = '{df['contract_id']}'
     AND timestamp = '{df['time']}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    """
+    try:    
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex: 
+        logger.debug(update_query)   
+        logger.error(ex)              
 
 
 def insert_trade(df):
     """
     This function inserts a new trade
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """    
     insert_query = f"""
     INSERT INTO {database_schema}.trade (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
     VALUES ('{df['contract_id']}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{df['period']}', '{df['api_id']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
-    
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)      
+
 
 def save_trade(df):
     """
     This function saves the collection data into a postgres database residing in AWS
     
-    Args: network_id - the id of the specific blockchain
-          period - the data frequency from the api request
-          contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of trades
     """    
     for row_index in df.index: 
         # First check if the trade exists
@@ -179,9 +241,13 @@ def get_all_contracts():
     sql_query = f"""
     SELECT * 
     FROM {database_schema}.contract   
-    """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    """  
+    try:  
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex: 
+        logger.debug(sql_query)   
+        logger.error(ex)  
 
 
 def get_contract(contract_id):
@@ -195,9 +261,13 @@ def get_contract(contract_id):
     SELECT * 
     FROM {database_schema}.contract   
     WHERE contract_id = '{contract_id}'
-    """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    """   
+    try:     
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def delete_contract(contract_id):
@@ -209,10 +279,14 @@ def delete_contract(contract_id):
     delete_query = f"""
     DELETE FROM {database_schema}.contract   
     WHERE contract_id = '{contract_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"{contract_id} was successfully deleted!")
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{contract_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
 
 
 def check_if_contract_exists(contract_id):
@@ -235,14 +309,31 @@ def update_contract(contract_id, df):
     Args: contract_id - a collection's contract id
           df - data collection of contract data
     """
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    royalties_fee_basic_points = scrub_int(df["royalties_fee_basic_points"])
+    royalties_receiver = scrub_str(df['royalties_receiver'])
+
     update_query = f"""
     UPDATE {database_schema}.contract
-    SET name  = '{df['name']}',
-        network_id = '{df['network_id']}'
+    SET address = '{df['address']}',
+        name  = '{name}',
+        description = '{descr}',        
+        external_url = '{df['external_url']}',
+        network_id = '{df['network_id']}',
+        primary_interface = '{df['primary_interface']}',
+        royalties_fee_basic_points = {royalties_fee_basic_points},        
+        royalties_receiver = '{royalties_receiver}',
+        num_tokens = {df['num_tokens']},
+        unique_owners = {df['unique_owners']}
     WHERE contract_id = '{contract_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    """       
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:
+        logger.debug(update_query)            
+        logger.error(ex)   
 
 
 def insert_contract(contract_id, df):
@@ -251,27 +342,35 @@ def insert_contract(contract_id, df):
     
     Args: contract_id - a collection's contract id
           df - data collection of trades
-    """    
+    """   
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    royalties_fee_basic_points = scrub_int(df["royalties_fee_basic_points"])
+    royalties_receiver = scrub_str(df['royalties_receiver'])
+
     insert_query = f"""
-    INSERT INTO {database_schema}.contract (contract_id, name, network_id)
-    VALUES ('{contract_id}', '{df['name']}', '{df['network_id']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
+    INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners)
+    VALUES ('{contract_id}', '{df['address']}', '{name}', '{descr}', '{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {royalties_fee_basic_points}, '{royalties_receiver}', {df['num_tokens']}, {df['unique_owners']})
+    """             
+    try:
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:
+        logger.debug(insert_query)        
+        logger.error(ex)  
     
 
 def save_contract(contract_df):
     """
     This function saves the contract data into a postgres database residing in AWS
     
-    Args: contract_id - a collection's contract id
-          df - data collection of trades
+    Args: df - data collection of contracts
     """    
     for row_index in contract_df.index: 
         contract_id = contract_df['contract_id'][row_index]
         # First check if the contract exists
         contract_exists = check_if_contract_exists(contract_id)
-        
+
         # If the contract exists then we update the information.  Otherwise, we add a new contract
         if contract_exists:
             update_contract(contract_id, contract_df.iloc[row_index])
@@ -294,9 +393,13 @@ def get_all_networks():
     sql_query = f"""
     SELECT * 
     FROM {database_schema}.network   
-    """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    """  
+    try:  
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def get_network(network_id):
@@ -311,8 +414,12 @@ def get_network(network_id):
     FROM {database_schema}.network   
     WHERE network_id = '{network_id}'
     """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def delete_network(network_id):
@@ -324,10 +431,14 @@ def delete_network(network_id):
     delete_query = f"""
     DELETE FROM {database_schema}.network   
     WHERE network_id = '{network_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"{network_id} was successfully deleted!")
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{network_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
 
 
 def check_if_network_exists(network_id):
@@ -356,8 +467,12 @@ def update_network(network_id, df):
         network_id = '{df['network_id']}'
     WHERE network_id = '{network_id}'
     """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
 
 
 def insert_network(network_id, df):
@@ -370,10 +485,14 @@ def insert_network(network_id, df):
     insert_query = f"""
     INSERT INTO {database_schema}.network (network_id, short_name)
     VALUES ('{network_id}', '{df['short_name']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
-    
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex) 
+
 
 def save_network(network_id, df):
     """
@@ -408,9 +527,13 @@ def get_all_api_requests():
     sql_query = f"""
     SELECT * 
     FROM {database_schema}.api   
-    """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    """   
+    try: 
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def get_api_request(api_id):
@@ -424,9 +547,13 @@ def get_api_request(api_id):
     SELECT * 
     FROM {database_schema}.api   
     WHERE api_id = '{api_id}'
-    """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    """  
+    try:      
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def delete_api_request(api_id):
@@ -438,10 +565,14 @@ def delete_api_request(api_id):
     delete_query = f"""
     DELETE FROM {database_schema}.api   
     WHERE api_id = '{api_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"{api_id} was successfully deleted!")
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{api_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
 
 
 def check_if_api_exists(api_id):
@@ -450,12 +581,15 @@ def check_if_api_exists(api_id):
     
     Args: api_id - the id of a specific api request
     Returns: Boolean
-    """        
-    df = get_api_request(api_id)
-    if len(df.index) > 0:
-        return True        
-    return False
-    
+    """      
+    try:  
+        df = get_api_request(api_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex)     
+
 
 def update_api_request(api_id, df):
     """
@@ -470,8 +604,12 @@ def update_api_request(api_id, df):
         endpoint = '{df['endpoint_url']}'
     WHERE api_id = '{api_id}'
     """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
 
 
 def insert_api_request(api_id, df):
@@ -484,10 +622,14 @@ def insert_api_request(api_id, df):
     insert_query = f"""
     INSERT INTO {database_schema}.api (api_id, name, endpoint_url)
     VALUES ('{api_id}', '{df['name']}', '{df['endpoint_url']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
-    
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
 
 def save_api_request(api_id, df):
     """
@@ -523,8 +665,12 @@ def get_all_whales():
     SELECT * 
     FROM {database_schema}.whale  
     """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def get_whale(wallet_id):
@@ -538,9 +684,13 @@ def get_whale(wallet_id):
     SELECT * 
     FROM {database_schema}.whale  
     WHERE network_id = '{wallet_id}'
-    """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    """  
+    try:      
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def delete_whale(wallet_id):
@@ -552,10 +702,14 @@ def delete_whale(wallet_id):
     delete_query = f"""
     DELETE FROM {database_schema}.whale  
     WHERE wallet_id = '{wallet_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"{wallet_id} was successfully deleted!")
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{wallet_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
 
 
 def check_if_whale_exists(wallet_id):
@@ -564,12 +718,15 @@ def check_if_whale_exists(wallet_id):
     
     Args: wallet_id - a whale's wallet address
     Returns: Boolean
-    """        
-    df = get_whale(wallet_id)
-    if len(df.index) > 0:
-        return True        
-    return False
-    
+    """ 
+    try:       
+        df = get_whale(wallet_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex)     
+
 
 def update_whale(wallet_id, df):
     """
@@ -583,8 +740,12 @@ def update_whale(wallet_id, df):
     SET contract_id  = '{df['contract_id']}',
     WHERE wallet_id = '{wallet_id}'
     """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
 
 
 def insert_whale(wallet_id, df):
@@ -597,10 +758,14 @@ def insert_whale(wallet_id, df):
     insert_query = f"""
     INSERT INTO {database_schema}.whale (wallet_id, contract_id)
     VALUES ('{wallet_id}', '{df['contract_id']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
-    
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
 
 def save_the_whales(wallet_id, df):
     """
@@ -636,8 +801,12 @@ def get_all_contract_maps():
     SELECT * 
     FROM {database_schema}.contract_map  
     """    
-    df = pd.read_sql_query(sql_query, con = engine)    
-    return df
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def get_contract_maps(contract_id):
@@ -651,9 +820,13 @@ def get_contract_maps(contract_id):
     SELECT * 
     FROM {database_schema}.contract_map   
     WHERE contract_id = '{contract_id}'
-    """        
-    df = pd.read_sql_query(sql_query, con = engine)                
-    return df
+    """    
+    try:    
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
 
 
 def delete_contract_maps(contract_id):
@@ -666,9 +839,13 @@ def delete_contract_maps(contract_id):
     DELETE FROM {database_schema}.contract_map  
     WHERE contract_id = '{contract_id}'
     """    
-    with engine.connect() as conn:
-        conn.execute(delete_query)
-        print(f"{contract_id} was successfully deleted!")
+    try:
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{contract_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
 
 
 def check_if_contract_map_exists(contract_id):
@@ -677,12 +854,15 @@ def check_if_contract_map_exists(contract_id):
     
     Args: contract_id - a collection's contract id
     Returns: Boolean
-    """        
-    df = get_contract_maps(contract_id)
-    if len(df.index) > 0:
-        return True        
-    return False
-    
+    """    
+    try:    
+        df = get_contract_maps(contract_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex)     
+
 
 def update_contract_map(contract_id, df):
     """
@@ -695,9 +875,13 @@ def update_contract_map(contract_id, df):
     UPDATE {database_schema}.contract_map
     SET   new_contract_id = {df['new_contract_id']}
     WHERE contract_id = '{contract_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
 
 
 def insert_contract_map(contract_id, df):
@@ -710,10 +894,14 @@ def insert_contract_map(contract_id, df):
     insert_query = f"""
     INSERT INTO {database_schema}.contract_map (contract_id, new_contract_id)
     VALUES ('{contract_id}', '{df['new_contract_id']}')
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
-    
+    """   
+    try: 
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
 
 def save_contract_maps(contract_id, df):
     """
@@ -731,3 +919,148 @@ def save_contract_maps(contract_id, df):
             update_contract_map(contract_id, df.iloc[row_index])
         else:
             insert_contract_map(contract_id, df.iloc[row_index])                                
+
+
+
+"""
+
+    CRUD Operations for the Tokens table
+
+"""
+def get_all_tokens():
+    """
+    This function returns a list of all the tokens per a contract
+
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token  
+    """    
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def get_token(token_id):
+    """
+    This function returns information for a specific token  
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token  
+    WHERE token_id = '{token_id}'
+    """        
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def delete_token(token_id):
+    """
+    This function deletes a specific token
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    """       
+    delete_query = f"""
+    DELETE FROM {database_schema}.token  
+    WHERE token_id = '{token_id}'
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            logger.info(f"{token_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
+
+
+def check_if_token_exists(token_id):
+    """
+    This function calls get_token to check if the token already exists.  
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: Boolean
+    """  
+    try:      
+        df = get_token(token_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex) 
+
+
+def update_token(token_id, df):
+    """
+    This function updates the token information
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of token data
+    """
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    
+    update_query = f"""
+    UPDATE {database_schema}.token
+    SET id_num = '{df['id_num']}',
+        name  = '{name}',
+        description = '{descr}',
+        contract_id = '{df['contract_id']}'
+    WHERE token_id = '{token_id}'
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
+
+
+def insert_token(token_id, df):
+    """
+    This function inserts a new token
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of trades
+    """ 
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+           
+    insert_query = f"""
+    INSERT INTO {database_schema}.token (token_id, id_num, name, description, contract_id)
+    VALUES ('{token_id}', '{df['id_num']}', '{name}', '{descr}', '{df['contract_id']}')
+    """    
+    try:
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
+
+def save_token(token_df):
+    """
+    This function saves the token data into a postgres database residing in AWS
+    
+    Args: df - data collection of tokens thats part of a specific contract i.e. Collection
+    """    
+    for row_index in token_df.index: 
+        token_id = token_df['token_id'][row_index]
+        # First check if the token exists
+        token_exists = check_if_token_exists(token_id)
+        
+        # If the token exists then we update the information.  Otherwise, we add a new token
+        if token_exists:
+            update_token(token_id, token_df.iloc[row_index])
+        else:
+            insert_token(token_id, token_df.iloc[row_index])                                
