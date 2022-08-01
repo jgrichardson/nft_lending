@@ -11,7 +11,11 @@ def fetch_rarify_data(url, key):
         url,
         headers={"Authorization": f"Bearer {key}"}
     ).json()
-    return sale_history_data['included'][1]['attributes']['history']
+    try:
+        trades_history = sale_history_data['included'][1]['attributes']['history']
+    except Exception: 
+        trades_history = sale_history_data['included'][0]['attributes']['history']
+    return trades_history
 
 def fetch_data_address(url, key):
     """
@@ -202,11 +206,16 @@ def find_volume(input_df, contract_ids):
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
 
-def find_std_devs(input_df, contract_ids):
+def find_std_devs(input_df, contract_ids, statistic='pct_chg'):
+    """
+    param input_df: (type: pandas.DataFrame)
+    param contract_ids: (type: dict)
+    param statistic: (type: str) The standard deviation of this statistic will be returned. Statistic must be of type: int, float. Defaults to percent change.
+    """
     df = input_df.copy()
     for coll in contract_ids.keys():
-        df[f"{coll}_std_dev"] = df[f"{coll}_avg_price"].std()
-    return df[df.columns[-(len(contract_ids) + 1):]].mean()
+        df[f"{coll}_std_dev"] = df[f"{coll}_{statistic}"].std()
+    return df[df.columns[-(len(contract_ids)):]].mean()
 
 def fetch_top_collections_data(url, key):
     """
