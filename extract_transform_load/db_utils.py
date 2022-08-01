@@ -1,4 +1,6 @@
 import pandas as pd
+import math
+import re
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
@@ -26,6 +28,44 @@ def get_all_table_names():
     inspector = inspect(engine)
     tables = inspector.get_table_names(database_schema)
     return tables
+
+
+
+def scrub_str(str):
+    """
+    This function checks for none objects as well as cleans up any characters which
+    would result into an exception being thrown
+
+    Args: str - object to analyze
+    Returns: string object
+    """
+    if str is not None:
+        if str.isdigit():
+            return str(str)
+        str = re.sub(r"[\([{'})\]]", "", str)
+        str = re.sub(r"%", "pct.", str)
+        return str
+    else:
+        return ''
+
+
+
+
+def scrub_int(num):
+    """
+    This function checks for none objects 
+
+    Args: num - numeric object to analyze
+    Returns: number
+    """
+    if num is not None:
+        if math.isnan(num):
+            return 0
+        if num == 0.0:
+            return 0
+        return num
+    else:
+        return 0
 
 
 
@@ -226,22 +266,31 @@ def update_contract(contract_id, df):
     Args: contract_id - a collection's contract id
           df - data collection of contract data
     """
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    royalties_fee_basic_points = scrub_int(df["royalties_fee_basic_points"])
+    royalties_receiver = scrub_str(df['royalties_receiver'])
+
     update_query = f"""
     UPDATE {database_schema}.contract
     SET address = '{df['address']}',
-        name  = '{df['name']}',
-        description = '{df['description']}',
+        name  = '{name}',
+        description = '{descr}',        
         external_url = '{df['external_url']}',
         network_id = '{df['network_id']}',
         primary_interface = '{df['primary_interface']}',
-        royalties_fee_basic_points = {df['royalties_fee_basic_points']},
-        royalties_receiver = '{df['royalties_receiver']}',
+        royalties_fee_basic_points = {royalties_fee_basic_points},        
+        royalties_receiver = '{royalties_receiver}',
         num_tokens = {df['num_tokens']},
         unique_owners = {df['unique_owners']}
     WHERE contract_id = '{contract_id}'
-    """    
-    with engine.connect() as conn:
-        conn.execute(update_query)
+    """       
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:
+        print(f"Exception caught: {ex}")
+        print(update_query)       
 
 
 def insert_contract(contract_id, df):
@@ -250,13 +299,23 @@ def insert_contract(contract_id, df):
     
     Args: contract_id - a collection's contract id
           df - data collection of trades
-    """    
+    """   
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    royalties_fee_basic_points = scrub_int(df["royalties_fee_basic_points"])
+    royalties_receiver = scrub_str(df['royalties_receiver'])
+
     insert_query = f"""
     INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners)
-    VALUES ('{contract_id}', '{df['address']}', '{df['name']}', '{df['description']}','{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {df['royalties_fee_basic_points']}, '{df['royalties_receiver']}', {df['num_tokens']}, {df['unique_owners']})
-    """    
-    with engine.connect() as conn:
-        conn.execute(insert_query)
+    VALUES ('{contract_id}', '{df['address']}', '{name}', '{descr}', '{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {royalties_fee_basic_points}, '{royalties_receiver}', {df['num_tokens']}, {df['unique_owners']})
+    """        
+     
+    try:
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:
+        print(f"Exception caught: {ex}")    
+        print(insert_query)
     
 
 def save_contract(contract_df):
@@ -269,7 +328,7 @@ def save_contract(contract_df):
         contract_id = contract_df['contract_id'][row_index]
         # First check if the contract exists
         contract_exists = check_if_contract_exists(contract_id)
-        
+
         # If the contract exists then we update the information.  Otherwise, we add a new contract
         if contract_exists:
             update_contract(contract_id, contract_df.iloc[row_index])

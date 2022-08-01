@@ -1,8 +1,11 @@
 # Import Libraries
+from tokenize import String
 import pandas as pd
+import numpy as np
 import os
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from psycopg2 import Timestamp
+from sqlalchemy import BigInteger, create_engine
 from sqlalchemy import inspect
 import requests
 import db_utils as db
@@ -17,6 +20,51 @@ def api_request(url, key):
         headers={"Authorization": f"Bearer {key}"}
     ).json()
     return response_json
+
+
+
+def get_contracts(obj_json):
+    contracts_df = pd.DataFrame()    
+    contracts_dict = obj_json['data']
+    contracts_df = pd.DataFrame(contracts_dict)
+    contracts_list = []
+    for index, contract in contracts_df.iterrows():
+        attr_dict = contract["attributes"]
+        contracts_dict = {'contract_id' : contract['id'], 'address' : attr_dict.get('address'), 'name' : attr_dict.get('name'), 'description' : attr_dict.get('description'), 'external_url' : attr_dict.get('external_url'),
+                          'network_id' : attr_dict.get('network'), 'primary_interface' : attr_dict.get('primary_interface'), 'royalties_fee_basic_points' : attr_dict.get('royalties_fee_basic_points'),
+                          'royalties_receiver' : attr_dict.get('royalties_receiver'), 'num_tokens' : attr_dict.get('tokens'), 'unique_owners' : attr_dict.get('unique_owners')}
+        contracts_list.append(contracts_dict)
+    contract_df = pd.DataFrame(contracts_list)
+    return contract_df
+
+
+
+def get_trades(json_obj):
+    convert_dict = { 
+                    "avg_price"     : 'float',
+                    "max_price"     : 'float',
+                    "min_price"     : 'float',
+                    "time"          : 'object',
+                    "trades"        : 'int64',
+                    "unique_buyers" : 'int64',
+                    "volume"        : 'float'
+                   }  
+
+    # There appears to be a bug in the Rarify response object.  Sometimes the history data is returned at index zero instead of 
+    # index one in the included list.  Thus, I will swallow the exception here if that does occur and then use the correct index
+    # and move one.  So far the keyerror 'history' error hasn't been happening.                      
+    try:        
+        trades_history = json_obj['included'][1]['attributes']['history']
+    except Exception:
+        trades_history = json_obj['included'][0]['attributes']['history']
+        pass
+
+    trades_df = pd.DataFrame(trades_history)
+    trades_df["time"] = pd.to_datetime(trades_df["time"], infer_datetime_format=True)     
+    trades_df = trades_df.astype(convert_dict)
+    trades_df[["avg_price", "max_price", "min_price", "volume"]] = round(trades_df[["avg_price", "max_price", "min_price", "volume"]] * 10**-18, 2)
+    return trades_df
+
 
 
 load_dotenv()
@@ -44,6 +92,11 @@ whales_id = "ethereum:dbfd76af2157dc15ee4e57f3f942bb45ba84af24"
 whales_url = f"https://api.rarify.tech/data/contracts/{whales_id}/whales"
 
 
+# Get the list of wallets either by ?filter[owner, contract, network, etc]=...
+# Currently returning 404 so maybe the server is no longer up?
+wallets_url = f"https://api.rarify.tech/data/wallets/?filter[network]=ethereum"
+
+
 # Get the trade data for a specific contract from the past period
 trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
 
@@ -53,18 +106,44 @@ token_id = 9620
 token_baseurl = f"https://api.rarify.tech/data/tokens/{network_id}:{contract_id}:{token_id}"
 
 
+# Make API request call to Rarify to get a list of ethereum contracts
+# Store contract information.  Then loop through dataframe and 
+# make API request call to Rarify again to get trades data for each contract
+contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
+
+# Make call to db.save_contracts() passing in a list of contracts 
+db.save_contract(contracts_df)
+
+# Loop through contracts and for each contract store information in db and get trade information
+#for index, contract in contracts_df.iterrows():
+
+
+# Make API request call to Rarify to get trades data
+trades_df = get_trades(api_request(trades_url, rarify_api_key))
+trades_df["contract_id"] = contract_id
+trades_df["period"] = period
+trades_df["api_id"] = 'rarify'
+
+# Write trades dataframe to a .csv file
+#trades_df.to_csv("trades.csv", index = False)
+
+# Make call db.save_trade() passing in a list of trades history data per contract
+trades_df.set_index("time")
+db.save_trade(trades_df)
+
+
 # Make API request call to Rarify
-json_response = api_request(tokens_url, rarify_api_key)
+#json_response = api_request(wallets_url, rarify_api_key)
 
 # Serial json data
-json_serialized = json.dumps(json_response, indent = 4)
+#json_serialized = json.dumps(json_response, indent = 4)
 
 # Output json data to a file
-with open('response.json', 'w') as f:
-    f.write(json_serialized)
+#with open('response.json', 'w') as f:
+#    f.write(json_serialized)
 
 # Display response in json format
-print(json_serialized)
+#print(json_serialized)
 
 ###
 #
