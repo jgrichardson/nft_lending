@@ -51,7 +51,7 @@ def scrub_str(str):
         if str.isdigit():
             return str(str)
         str = re.sub(r"[\([{'})\]]", "", str)
-        str = re.sub(r"%", "pct.", str)
+        str = re.sub(r"%", " pct.", str)
         return str
     else:
         return ''
@@ -978,7 +978,7 @@ def delete_token(token_id):
     try:   
         with engine.connect() as conn:
             conn.execute(delete_query)
-            print(f"{token_id} was successfully deleted!")
+            logger.info(f"{token_id} was successfully deleted!")
     except Exception as ex:  
         logger.debug(delete_query)  
         logger.error(ex) 
@@ -1007,11 +1007,14 @@ def update_token(token_id, df):
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of token data
     """
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+    
     update_query = f"""
     UPDATE {database_schema}.token
-    SET id_number = '{df['id_number']}',
-        name  = '{df['name']}',
-        description = '{df['description']}',
+    SET id_num = '{df['id_num']}',
+        name  = '{name}',
+        description = '{descr}',
         contract_id = '{df['contract_id']}'
     WHERE token_id = '{token_id}'
     """ 
@@ -1029,10 +1032,13 @@ def insert_token(token_id, df):
     
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of trades
-    """    
+    """ 
+    name = scrub_str(df['name'])
+    descr = scrub_str(df['description'])
+           
     insert_query = f"""
-    INSERT INTO {database_schema}.token (token_id, id_number, name, description, contract_id)
-    VALUES ('{token_id}', '{df['id_number']}', '{df['name']}', '{df['description']}', '{df['contract_id']}')
+    INSERT INTO {database_schema}.token (token_id, id_num, name, description, contract_id)
+    VALUES ('{token_id}', '{df['id_num']}', '{name}', '{descr}', '{df['contract_id']}')
     """    
     try:
         with engine.connect() as conn:

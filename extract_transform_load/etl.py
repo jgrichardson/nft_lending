@@ -39,7 +39,22 @@ def get_contracts(obj_json):
 
 
 
-def get_trades(json_obj):
+
+def get_tokens_by_contract_id(obj_json):
+    tokens_df = pd.DataFrame()    
+    tokens_dict = obj_json['data']
+    tokens_df = pd.DataFrame(tokens_dict)
+    tokens_list = []
+    for index, token in tokens_df.iterrows():
+        attr_dict = token["attributes"]
+        tokens_dict = {'token_id' : token['id'], 'id_num' : attr_dict.get('token_id'), 'name' : attr_dict.get('name'), 'description' : attr_dict.get('description')}
+        tokens_list.append(tokens_dict)
+    token_df = pd.DataFrame(tokens_list)
+    return token_df
+
+
+
+def get_trades(obj_json):
     convert_dict = { 
                     "avg_price"     : 'float',
                     "max_price"     : 'float',
@@ -54,9 +69,9 @@ def get_trades(json_obj):
     # index one in the included list.  Thus, I will swallow the exception here if that does occur and then use the correct index
     # and move one.  So far the keyerror 'history' error hasn't been happening.                      
     try:        
-        trades_history = json_obj['included'][1]['attributes']['history']
+        trades_history = obj_json['included'][1]['attributes']['history']
     except Exception:
-        trades_history = json_obj['included'][0]['attributes']['history']
+        trades_history = obj_json['included'][0]['attributes']['history']
         pass
 
     trades_df = pd.DataFrame(trades_history)
@@ -73,17 +88,69 @@ rarify_api_key = os.getenv("RARIFY_API_KEY")
 
 network_id = "ethereum"
 
-# Crypto Punks
-contract_id = "ethereum:b47e3cd837ddf8e4c57f05d70ab865de6e193bbb"
-
 # Time frame of data pull
 period = "90d"
+
 
 # Get list of top 100 contracts by highest volume
 contracts_url = f"https://api.rarify.tech/data/contracts/?page[limit]=100&sort=-insights.volume"
 
-# Get list of tokens
-tokens_url = f"https://api.rarify.tech/data/tokens/?filter[contract]=ethereum:0x06012c8cf97bead5deae237070f9587f8e7a266d"
+# Make API request call to Rarify to get a list of ethereum contracts
+# Store contract information.  Then loop through dataframe and 
+# make API request call to Rarify again to get trades data for each contract
+contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
+
+# Make call to db.save_contracts() passing in a list of contracts 
+db.save_contract(contracts_df)
+
+# Loop through contracts and for each contract store information in db and get trade information
+# for index, contract in contracts_df.iterrows():
+contracts_list = contracts_df.contract_id.values.tolist()
+
+"""
+for contract_id in contracts_list:    
+    # Get the trade data for a specific contract from the past period
+    trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
+    # Make API request call to Rarify to get trades data
+    trades_df = get_trades(api_request(trades_url, rarify_api_key))
+    trades_df["contract_id"] = contract_id
+    trades_df["period"] = period
+    trades_df["api_id"] = 'rarify'
+
+    # Write trades dataframe to a .csv file
+    #trades_df.to_csv("trades.csv", index = False)
+
+    # Make call db.save_trade() passing in a list of trades history data per contract
+    trades_df.set_index("time")
+    db.save_trade(trades_df)
+"""
+
+
+for contract_id in contracts_list:
+    # Get list of tokens
+    tokens_url = f"https://api.rarify.tech/data/tokens/?filter[contract]={contract_id}"
+
+    # Make API request call to Rarify
+    tokens_df = get_tokens_by_contract_id(api_request(tokens_url, rarify_api_key))
+
+    # Set contract_id for list of tokens retrieved
+    tokens_df["contract_id"] = contract_id
+
+    # Write token dataframe to a .csv file
+    #tokens_df.to_csv("tokens.csv", index = False)
+
+    # Make call db.save_token() passing in a list of tokens data per contract
+    db.save_token(tokens_df)
+
+    # Serial json data
+    #json_serialized = json.dumps(json_response, indent = 4)
+
+    # Output json data to a file
+    #with open('token_response.json', 'w') as f:
+    #     f.write(json_serialized)
+
+    # Display response in json format
+    #print(json_serialized)
 
 
 # Get list of whales that own the specified contract
@@ -96,61 +163,13 @@ whales_url = f"https://api.rarify.tech/data/contracts/{whales_id}/whales"
 # Currently returning 404 so maybe the server is no longer up?
 wallets_url = f"https://api.rarify.tech/data/wallets/?filter[network]=ethereum"
 
-
-# Get the trade data for a specific contract from the past period
-trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
-
+# Crypto Punks
+contract_id = "ethereum:b47e3cd837ddf8e4c57f05d70ab865de6e193bbb"
 
 # Use the following code to target a specific token in the collection
 token_id = 9620
 token_baseurl = f"https://api.rarify.tech/data/tokens/{network_id}:{contract_id}:{token_id}"
 
-
-# Make API request call to Rarify to get a list of ethereum contracts
-# Store contract information.  Then loop through dataframe and 
-# make API request call to Rarify again to get trades data for each contract
-contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
-
-# Make call to db.save_contracts() passing in a list of contracts 
-db.save_contract(contracts_df)
-
-# Loop through contracts and for each contract store information in db and get trade information
-#for index, contract in contracts_df.iterrows():
-
-
-# Make API request call to Rarify to get trades data
-trades_df = get_trades(api_request(trades_url, rarify_api_key))
-trades_df["contract_id"] = contract_id
-trades_df["period"] = period
-trades_df["api_id"] = 'rarify'
-
-# Write trades dataframe to a .csv file
-#trades_df.to_csv("trades.csv", index = False)
-
-# Make call db.save_trade() passing in a list of trades history data per contract
-trades_df.set_index("time")
-db.save_trade(trades_df)
-
-
-# Make API request call to Rarify
-#json_response = api_request(wallets_url, rarify_api_key)
-
-# Serial json data
-#json_serialized = json.dumps(json_response, indent = 4)
-
-# Output json data to a file
-#with open('response.json', 'w') as f:
-#    f.write(json_serialized)
-
-# Display response in json format
-#print(json_serialized)
-
-###
-#
-# START HERE...
-# Create dataframe for contract and trades from API call.  Then store the data into DB.
-#
-###
 
 
 

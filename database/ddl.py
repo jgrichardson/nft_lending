@@ -72,7 +72,7 @@ def create_tables():
             contract_id VARCHAR(80) PRIMARY KEY,
             address VARCHAR(50),               
             name VARCHAR(100),
-            description VARCHAR(1500),         
+            description VARCHAR(2000),         
             external_url VARCHAR(250),            
             network_id VARCHAR(50),
             primary_interface VARCHAR(50),
@@ -90,10 +90,10 @@ def create_tables():
         """,
         """
         CREATE TABLE Token(
-            token_id VARCHAR(80),
-            id_number VARCHAR(10),
+            token_id VARCHAR(120),
+            id_num   VARCHAR(80),
             name VARCHAR(100),
-            description VARCHAR(1500),
+            description VARCHAR(2000),
             contract_id VARCHAR(80)
         )
         """,
