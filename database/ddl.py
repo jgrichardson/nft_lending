@@ -7,6 +7,7 @@ import logging
 
 
 # Get Logger
+logging.basicConfig(filename='ddl.log', filemode='w', level=logging.INFO, format='%(levelname)s: %(asctime)s - %(message)s')
 logger = logging.getLogger()
 
 # Load .env environment variables
@@ -51,8 +52,9 @@ def drop_tables():
             # Drop tables one by one
             for tbl in drop_tbls:
                 conn.execute(tbl)
-                print(tbl + " Successfully Dropped!")
+                logger.info(tbl + " Successfully Dropped!")
     except Exception as ex:
+        logger.debug(drop_tbls)
         logger.exception(ex)
 
 
@@ -131,8 +133,9 @@ def create_tables():
             # create tables one by one
             for tbl in create_tbls:
                 conn.execute(tbl)
-                print(tbl + " Successfully Created!")
+                logger.info(tbl + " Successfully Created!")
     except Exception as ex:
+        logger.debug(create_tbls)
         logger.exception(ex)
     
 def add_constraints():
@@ -148,30 +151,35 @@ def add_constraints():
             # add unique constraints one by one
             for constraint in unique_constraints:
                 conn.execute(constraint)
-                print(constraint + " Successfully Added!")
+                logger.info(constraint + " Successfully Added!")
     except Exception as ex:
+        logger.debug(unique_constraints)
         logger.exception(ex)
 
+
 if __name__ == '__main__':
-    # Display all table names in the database
-    inspector = inspect(engine)
-    database_tables = inspector.get_table_names(database_schema)
-    print(database_tables)
+    try:
+        # Display all table names in the database
+        inspector = inspect(engine)
+        database_tables = inspector.get_table_names(database_schema)
+        logger.info(database_tables)
 
-    # Drop system tables
-    drop_tables()
+        # Drop system tables
+        drop_tables()
 
-    # Create system tables
-    create_tables()
+        # Create system tables
+        create_tables()
 
-    # Add unique constraints to tables
-    add_constraints()
+        # Add unique constraints to tables
+        add_constraints()
 
-    # Display all table names in the database
-    inspector = inspect(engine)
-    database_tables = inspector.get_table_names(database_schema)
-    print(database_tables)
-
+        # Display all table names in the database
+        inspector = inspect(engine)
+        database_tables = inspector.get_table_names(database_schema)
+        logger.info(database_tables)
+    except Exception as ex:
+        logger.debug(database_tables)
+        logger.exception(ex)
 
 
 

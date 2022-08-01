@@ -6,6 +6,7 @@ import logging
 
 
 # Get Logger
+logging.basicConfig(filename='dml.log', filemode='w', level=logging.INFO, format='%(levelname)s: %(asctime)s - %(message)s')
 logger = logging.getLogger()
 
 # Load .env environment variables
@@ -35,8 +36,9 @@ def delete_network_data():
             # delete records one by one
             for rec in delete_networks:
                 conn.execute(rec)
-                print(rec + " Successfully Deleted!")
+                logger.info(rec + " Successfully Deleted!")
     except Exception as ex:
+        logger.debug(delete_networks)
         logger.exception(ex)
         
 
@@ -71,8 +73,9 @@ def add_network_data():
             # insert records one by one
             for rec in insert_networks:
                 conn.execute(rec)
-                print(rec + " Successfully Inserted!")
+                logger.info(rec + " Successfully Inserted!")
     except Exception as ex:
+        logger.debug(insert_networks)
         logger.exception(ex)
     
 
@@ -90,8 +93,9 @@ def delete_api_data():
             # delete records one by one
             for rec in delete_apis:
                 conn.execute(rec)
-                print(rec + " Successfully Deleted!")
+                logger.info(rec + " Successfully Deleted!")
     except Exception as ex:
+        logger.debug(delete_apis)
         logger.exception(ex)
         
 
@@ -110,8 +114,9 @@ def add_api_data():
             # insert records one by one
             for rec in insert_apis:
                 conn.execute(rec)
-                print(rec + " Successfully Inserted!")
+                logger.info(rec + " Successfully Inserted!")
     except Exception as ex:
+        logger.debug(insert_apis)
         logger.exception(ex)    
 
 
