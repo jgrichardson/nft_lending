@@ -59,7 +59,11 @@ def add_network_data():
         f"""
         INSERT INTO {database_schema}.network (network_id, short_name)
         VALUES ('xrp', 'XRP')        
-        """                
+        """,
+        f"""
+        INSERT INTO {database_schema}.network (network_id, short_name)
+        VALUES ('polygon', 'MATIC')        
+        """                         
     ]
 
     try:

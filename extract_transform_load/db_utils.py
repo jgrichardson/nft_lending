@@ -5,6 +5,10 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
+import logging
+
+# Get Logger
+logger = logging.getLogger()
 
 # Load .env environment variables
 load_dotenv()
@@ -289,8 +293,9 @@ def update_contract(contract_id, df):
         with engine.connect() as conn:
             conn.execute(update_query)
     except Exception as ex:
-        print(f"Exception caught: {ex}")
-        print(update_query)       
+        #print(f"Exception caught: {ex}")
+        logger.info(update_query)            
+        logger.exception(ex)   
 
 
 def insert_contract(contract_id, df):
@@ -314,8 +319,8 @@ def insert_contract(contract_id, df):
         with engine.connect() as conn:
             conn.execute(insert_query)
     except Exception as ex:
-        print(f"Exception caught: {ex}")    
-        print(insert_query)
+        logger.info(insert_query)        
+        logger.exception(ex)  
     
 
 def save_contract(contract_df):
