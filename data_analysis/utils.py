@@ -96,6 +96,7 @@ def fetch_collections_data(contract_ids: dict, rarify_api_key: str):
     sum_df = pd.concat(df_list, axis=1, keys=contract_ids.keys())
     return sum_df
 
+
 def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
     """
     :param contract_ids: (type: dict) Houses the contract addresses and the collection names
@@ -122,8 +123,8 @@ def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
                     'unique_buyers': float,
                     'volume': float,
                    }  
-    for contract_id in contract_ids.values():
-        network_id = "ethereum"
+    for contract_id in contract_ids.keys():
+        network_id = contract_ids[contract_id]['network']
         collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/all_time"
         curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
         curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
@@ -134,6 +135,23 @@ def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
     sum_df = pd.concat(df_list, axis=1, keys=contract_ids.keys())
     return sum_df
 
+def find_valid_contracts(df, contract_ids):
+    coll_names = []
+    counter = 0
+    copy_contract_ids = contract_ids.copy()
+    for k in contract_ids.keys():
+        coll_names.append(contract_ids[k]['name'])
+    for col in df.columns:
+        if "avg_price" in col:
+            df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
+            if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
+                for k in contract_ids:
+                    if coll_names[counter] == contract_ids[k]['name']:
+                        del copy_contract_ids[k]
+            counter += 1
+    contract_ids = copy_contract_ids
+    return contract_ids
+
 def find_pct_change(df, contract_ids):
     """
     param df: (type: pandas.DataFrame) DataFrame must have average prices series
@@ -143,19 +161,22 @@ def find_pct_change(df, contract_ids):
     coll_names = []
     counter = 0
     for k in contract_ids.keys():
-        coll_names.append(k)
+        coll_names.append(contract_ids[k]['name'])
     for col in df.columns:
         if "avg_price" in col:
             df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
+            if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
+                df = df.drop([f"{coll_names[counter]}_pct_chg"], axis=1)
             counter += 1
     return df
+
 
 def find_beta(df, contract_ids):
     betas_dict = {}
     for con in contract_ids.keys():
         # con_beta = df[f"{con}_pct_chg"].cov(df["basket_pct_chg"]) / df["basket_pct_chg"].var()
-        con_beta = df[f"{con}_pct_chg"].cov(df["top_collections_basket_pct_chg"]) / df["top_collections_basket_pct_chg"].var()
-        betas_dict[f"{con}_beta"] = con_beta 
+        con_beta = df[f"{contract_ids[con]['name']}_pct_chg"].cov(df["top_collections_basket_pct_chg"]) / df["top_collections_basket_pct_chg"].var()
+        betas_dict[f"{contract_ids[con]['name']}_beta"] = con_beta 
     return betas_dict
 
 def find_avg_price(input_df, contract_ids):
@@ -213,8 +234,8 @@ def find_std_devs(input_df, contract_ids, statistic='pct_chg'):
     param statistic: (type: str) The standard deviation of this statistic will be returned. Statistic must be of type: int, float. Defaults to percent change.
     """
     df = input_df.copy()
-    for coll in contract_ids.keys():
-        df[f"{coll}_std_dev"] = df[f"{coll}_{statistic}"].std()
+    for con in contract_ids.keys():
+        df[f"{contract_ids[con]['name']}_std_dev"] = df[f"{contract_ids[con]['name']}_{statistic}"].std()
     return df[df.columns[-(len(contract_ids)):]].mean()
 
 def fetch_top_collections_data(url, key):
