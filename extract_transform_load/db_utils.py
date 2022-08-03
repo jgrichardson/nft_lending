@@ -179,6 +179,7 @@ def update_trade(df):
         unique_buyers = {df['unique_buyers']},
         volume = {round(df['volume'], 2)},
         period = '{df['period']}',
+        type = '{df['type']}',
         api_id = '{df['api_id']}'
     WHERE contract_id = '{df['contract_id']}'
     AND timestamp = '{df['time']}'
@@ -198,8 +199,8 @@ def insert_trade(df):
     Args: df - data collection of trades
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.trade (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, api_id)
-    VALUES ('{df['contract_id']}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{df['period']}', '{df['api_id']}')
+    INSERT INTO {database_schema}.trade (contract_id, timestamp, avg_price, max_price, min_price, num_trades, unique_buyers, volume, period, type, api_id)
+    VALUES ('{df['contract_id']}', '{df['time']}', {round(df['avg_price'], 2)}, {round(df['max_price'], 2)}, {round(df['min_price'], 2)}, {df['trades']}, {df['unique_buyers']}, {round(df['volume'], 2)}, '{df['period']}', '{df['type']}', '{df['api_id']}')
     """  
     try:  
         with engine.connect() as conn:
@@ -325,7 +326,8 @@ def update_contract(contract_id, df):
         royalties_fee_basic_points = {royalties_fee_basic_points},        
         royalties_receiver = '{royalties_receiver}',
         num_tokens = {df['num_tokens']},
-        unique_owners = {df['unique_owners']}
+        unique_owners = {df['unique_owners']},
+        smart_floor_price = {df['smart_floor_price']}
     WHERE contract_id = '{contract_id}'
     """       
     try:
@@ -349,8 +351,8 @@ def insert_contract(contract_id, df):
     royalties_receiver = scrub_str(df['royalties_receiver'])
 
     insert_query = f"""
-    INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners)
-    VALUES ('{contract_id}', '{df['address']}', '{name}', '{descr}', '{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {royalties_fee_basic_points}, '{royalties_receiver}', {df['num_tokens']}, {df['unique_owners']})
+    INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners, smart_floor_price)
+    VALUES ('{contract_id}', '{df['address']}', '{name}', '{descr}', '{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {royalties_fee_basic_points}, '{royalties_receiver}', {df['num_tokens']}, {df['unique_owners']}, {df['smart_floor_price']})
     """             
     try:
         with engine.connect() as conn:
@@ -601,7 +603,7 @@ def update_api_request(api_id, df):
     update_query = f"""
     UPDATE {database_schema}.api
     SET name  = '{df['name']}',
-        endpoint = '{df['endpoint_url']}'
+        endpoint_url = '{df['endpoint_url']}'
     WHERE api_id = '{api_id}'
     """    
     try:
@@ -1015,7 +1017,7 @@ def update_token(token_id, df):
     SET id_num = '{df['id_num']}',
         name  = '{name}',
         description = '{descr}',
-        contract_id = '{df['contract_id']}'
+        contract_id = '{df['contract_id']}'     
     WHERE token_id = '{token_id}'
     """ 
     try:   
@@ -1064,3 +1066,281 @@ def save_token(token_df):
             update_token(token_id, token_df.iloc[row_index])
         else:
             insert_token(token_id, token_df.iloc[row_index])                                
+
+
+
+"""
+
+    CRUD Operations for the Token Attribute table
+
+"""
+def get_all_token_attributes():
+    """
+    This function returns a list of all the token attributes
+
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token_attribute  
+    """    
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def get_token_attributes(token_id):
+    """
+    This function returns token_attributes information for a specific token  
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.token_attribute 
+    WHERE token_id = '{token_id}'
+    """        
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def delete_token_attributes(token_id):
+    """
+    This function deletes a specific token attributes
+
+    Args: token_id - a token thats part of a contract i.e. Collection
+    """       
+    delete_query = f"""
+    DELETE FROM {database_schema}.token_attribute 
+    WHERE token_id = '{token_id}'
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            logger.info(f"{token_id} attributes was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
+
+
+def check_if_token_attributes_exists(token_id):
+    """
+    This function calls get_token_attributes to check if the token attribute already exists.  
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+    Returns: Boolean
+    """  
+    try:      
+        df = get_token_attributes(token_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex) 
+
+
+def update_token_attributes(token_id, df):
+    """
+    This function updates the token attributes information
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of token data
+    """    
+    update_query = f"""
+    UPDATE {database_schema}.token_attribute
+    SET overall_with_trait_value = {df['overall_with_trait_value']},
+        rarity_percentage  = {df['rarity_percentage']},
+        trait_type = '{df['trait_type']}',
+        value = '{df['value']}'      
+    WHERE token_id = '{token_id}'
+    """ 
+    try:   
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
+
+
+def insert_token_attributes(token_id, df):
+    """
+    This function inserts a new token attribute
+    
+    Args: token_id - a token thats part of a contract i.e. Collection
+          df - data collection of trades
+    """ 
+    insert_query = f"""
+    INSERT INTO {database_schema}.token_attribute (token_id, overall_with_trait_value, rarity_percentage, trait_type, value)
+    VALUES ('{token_id}', {df['overall_with_trait_value']}, {df['rarity_percentage']}, '{df['trait_type']}', '{df['value']}')
+    """    
+    try:
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
+
+def save_token_attributes(token_attributes_df):
+    """
+    This function saves the token attributes data into a postgres database residing in AWS
+    
+    Args: df - data collection of tokens thats part of a specific contract i.e. Collection
+    """    
+    for row_index in token_attributes_df.index: 
+        token_id = token_attributes_df['token_id'][row_index]
+        # First check if the token attributes exists
+        token_attributes_exists = check_if_token_attributes_exists(token_id)
+        
+        # If the token attributes exists then we update the information.  Otherwise, we add a new token
+        if token_attributes_exists:
+            update_token_attributes(token_id, token_attributes_df.iloc[row_index])
+        else:
+            insert_token_attributes(token_id, token_attributes_df.iloc[row_index])                                
+
+
+
+"""
+
+    CRUD Operations for the Social Media table
+
+"""
+def get_all_social_media():
+    """
+    This function returns a list of all the data in the social media table
+
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.social_media 
+    """   
+    try: 
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def get_social_media(contract_id):
+    """
+    This function returns all social media information for a specific contract
+
+    Args: contract_id - the contract id of the collection
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.social_media  
+    WHERE contract_id = '{contract_id}'
+    """  
+    try:      
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex) 
+
+
+def delete_social_media(contract_id):
+    """
+    This function deletes all the social media for specific contract 
+
+    Args: contract_id - the contract id of the collection
+    """       
+    delete_query = f"""
+    DELETE FROM {database_schema}.social_media   
+    WHERE contract_id = '{contract_id}'
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"{contract_id} was successfully deleted!")
+    except Exception as ex:  
+        logger.debug(delete_query)  
+        logger.error(ex) 
+
+
+def check_if_social_media_exists(contract_id):
+    """
+    This function calls get_social_media to check if the contract social media data already exists.  
+    
+    Args: contract_id - the contract id of the collection
+    Returns: Boolean
+    """      
+    try:  
+        df = get_social_media(contract_id)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:  
+        logger.error(ex)     
+
+
+def update_social_media(contract_id, df):
+    """
+    This function updates the social media information
+    
+    Args: contract_id - the contract id of the collection
+          df - data collection of social media data
+    """
+    update_query = f"""
+    UPDATE {database_schema}.social_media
+    SET name  = '{df['name']}',
+        handle = '{df['handle']}',
+        handle_url = '{df['handle_url']}',
+        latest_post = '{df['latest_post']}'
+    WHERE contract_id = '{contract_id}'
+    """    
+    try:
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex:  
+        logger.debug(update_query)  
+        logger.error(ex) 
+
+
+def insert_social_media(contract_id, df):
+    """
+    This function inserts a new social media account
+    
+    Args: contract_id - the contract id of the collection
+          df - data collection of social media accounts
+    """    
+    insert_query = f"""
+    INSERT INTO {database_schema}.social_media (contract_id, name, handle, handle_url, latest_post)
+    VALUES ('{contract_id}', '{df['name']}', '{df['handle']}', '{df['handle_url']}', '{df['latest_post']}')
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)     
+
+
+def save_social_media(contract_id, df):
+    """
+    This function saves the social media data into a postgres database residing in AWS
+    
+    Args: contract_id - the contract id of the collection
+          df - data collection of social media accounts
+    """    
+    for row_index in df.index: 
+        # First check if the social media account exists
+        social_media_exists = check_if_social_media_exists(contract_id)
+        
+        # If the social media account exists then we update the information.  Otherwise, we add a new social media account
+        if social_media_exists:
+            update_social_media(contract_id, df.iloc[row_index])
+        else:
+            insert_social_media(contract_id, df.iloc[row_index])                                

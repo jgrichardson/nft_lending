@@ -38,6 +38,9 @@ def drop_tables():
         DROP TABLE IF EXISTS Token;
         """,
         """
+        DROP TABLE IF EXISTS Token_Attribute;
+        """,
+        """
         DROP TABLE IF EXISTS Whale;
         """,
         """
@@ -45,6 +48,9 @@ def drop_tables():
         """,
         """
         DROP TABLE IF EXISTS Trade;
+        """,
+        """
+        DROP TABLE IF EXISTS Social_Media;
         """
     ]
     try:
@@ -63,67 +69,85 @@ def create_tables():
     create_tbls = [
         """
         CREATE TABLE Network(
-            network_id VARCHAR(50) PRIMARY KEY,
-            short_name VARCHAR(50)
+            network_id VARCHAR PRIMARY KEY,
+            short_name VARCHAR
         )
         """,
         """
         CREATE TABLE Contract(
-            contract_id VARCHAR(80) PRIMARY KEY,
-            address VARCHAR(50),               
-            name VARCHAR(100),
-            description VARCHAR(2000),         
-            external_url VARCHAR(250),            
-            network_id VARCHAR(50),
-            primary_interface VARCHAR(50),
+            contract_id VARCHAR PRIMARY KEY,
+            address VARCHAR,               
+            name VARCHAR,
+            description VARCHAR,         
+            external_url VARCHAR,            
+            network_id VARCHAR,
+            primary_interface VARCHAR,
             royalties_fee_basic_points INT,
-            royalties_receiver VARCHAR(50),
+            royalties_receiver VARCHAR,
             num_tokens INT,
-            unique_owners INT
+            unique_owners INT,
+            smart_floor_price NUMERIC
         )
         """,
         """
         CREATE TABLE Contract_Map(
-            contract_id VARCHAR(80),
-            new_contract_id VARCHAR(80)
+            contract_id VARCHAR,
+            new_contract_id VARCHAR
         )
         """,
         """
         CREATE TABLE Token(
-            token_id VARCHAR(120),
-            id_num   VARCHAR(80),
-            name VARCHAR(100),
-            description VARCHAR(2000),
-            contract_id VARCHAR(80)
+            token_id VARCHAR,
+            id_num   VARCHAR,
+            name VARCHAR,
+            description VARCHAR,
+            contract_id VARCHAR
+        )
+        """,
+        """
+        CREATE TABLE Token_Attribute(
+            token_id VARCHAR,
+            overall_with_trait_value INT,
+            rarity_percentage NUMERIC,
+            trait_type VARCHAR,
+            value VARCHAR
         )
         """,
         """
         CREATE TABLE Whale(
-            wallet_id VARCHAR(50),
-            contract_id VARCHAR(80)
+            wallet_id VARCHAR,
+            contract_id VARCHAR
         )
         """,
         """
         CREATE TABLE API(
-            api_id VARCHAR(50) PRIMARY KEY,
-            name VARCHAR(100),
-            endpoint_url VARCHAR(250)
+            api_id VARCHAR PRIMARY KEY,
+            name VARCHAR,
+            endpoint_url VARCHAR
         )
         """,
         """
         CREATE TABLE Trade(
-            contract_id VARCHAR(80) NOT NULL,
+            contract_id VARCHAR NOT NULL,
             timestamp TIMESTAMP NOT NULL,
             avg_price NUMERIC,
             max_price NUMERIC,
             min_price NUMERIC,
             num_trades INT,
             unique_buyers INT,
-            floor_price NUMERIC,
-            ceiling_price NUMERIC,
             volume INT,
-            period VARCHAR(10),
-            api_id VARCHAR(50)
+            period VARCHAR,
+            type VARCHAR,
+            api_id VARCHAR
+        )
+        """,
+        """
+        CREATE TABLE Social_Media(
+            contract_id VARCHAR NOT NULL,
+            name VARCHAR NOT NULL,
+            handle VARCHAR NOT NULL,
+            handle_url VARCHAR,
+            latest_post VARCHAR
         )
         """
     ]
