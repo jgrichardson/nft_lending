@@ -1,5 +1,6 @@
 import pandas as pd
 import requests
+import json
     
 def fetch_rarify_data(url, key):
     """
@@ -143,6 +144,7 @@ def find_valid_contracts(df, contract_ids):
         coll_names.append(contract_ids[k]['name'])
     for col in df.columns:
         if "avg_price" in col:
+        # if "min_price" in col:
             df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
             if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
                 for k in contract_ids:
@@ -164,6 +166,7 @@ def find_pct_change(df, contract_ids):
         coll_names.append(contract_ids[k]['name'])
     for col in df.columns:
         if "avg_price" in col:
+        # if "min_price" in col:
             df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
             if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
                 df = df.drop([f"{coll_names[counter]}_pct_chg"], axis=1)
@@ -262,6 +265,13 @@ def fetch_top_collections_data(url, key):
     
     return data_dict
 
+def find_whale_ratio(contract_ids):
+    whale_ratios = {}
+    for con in contract_ids.keys():
+        whale_ratios[con] = {'name': contract_ids[con]['name'], 'whale_ratio': contract_ids[con]['tokens']/contract_ids[con]['unique_owners']}
+    return whale_ratios
+
+
 def append_collumn_names(df, contract_ids):
     cols = ["avg_price", "max_price", "min_price", "trades", "unique_buyers", "volume"]
     new_cols = []
@@ -288,4 +298,19 @@ def plot_pct_chg_collections(input_df, collection_name):
     param collection_name: (type: str) Must be in same format as column names in the DataFrame (Including no spaces).
     """
     return input_df[f"{collection_name}_pct_chg"].hvplot()
+
+
+def write_json_file(json_object, file_name: str):
+    """
+    param json_dict: (type: dict) A Json formatted datatype
+    param file_name: (type: str) Must contain the .json suffix and be a valid file name
+
+    Will write a json file from a json object
+    """
+    json_file = json.dumps(json_object, indent=4)
+    f = open(file_name, 'w')
+    f.write(json_file)
+    f.close()
+    return 'JSON file written to current directory'
+
         
