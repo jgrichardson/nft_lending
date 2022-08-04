@@ -1,6 +1,21 @@
+from nbformat import write
 import pandas as pd
 import requests
 import json
+
+def write_json_file(json_object, file_name: str):
+    """
+    param json_dict: (type: dict) A Json formatted datatype
+    param file_name: (type: str) Must contain the .json suffix and be a valid file name
+
+    Will write a json file from a json object
+    """
+    json_file = json.dumps(json_object, indent=4)
+    f = open(file_name, 'w')
+    f.write(json_file)
+    f.close()
+    return 'JSON file written to current directory'
+
     
 def fetch_rarify_data(url, key):
     """
@@ -127,6 +142,8 @@ def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
     for contract_id in contract_ids.keys():
         network_id = contract_ids[contract_id]['network']
         collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/all_time"
+        collections_json = fetch_rarify_data(collections_baseurl, rarify_api_key)
+        write_json_file(collections_json, 'collections_trade_history.json')
         curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
         curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
         curr_df = curr_df.set_index('time')
@@ -193,6 +210,19 @@ def find_avg_price(input_df, contract_ids):
             df[f"{coll_names[counter]}_mean_avg_price"] = df[col].mean()
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
+
+def avg_price_df(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = []
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "avg_price" in col:
+            df[f"{coll_names[counter]}_avg_price"] = df[col]
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
 
 def find_max_price(input_df, contract_ids):
     df = input_df.copy()
@@ -300,17 +330,5 @@ def plot_pct_chg_collections(input_df, collection_name):
     return input_df[f"{collection_name}_pct_chg"].hvplot()
 
 
-def write_json_file(json_object, file_name: str):
-    """
-    param json_dict: (type: dict) A Json formatted datatype
-    param file_name: (type: str) Must contain the .json suffix and be a valid file name
-
-    Will write a json file from a json object
-    """
-    json_file = json.dumps(json_object, indent=4)
-    f = open(file_name, 'w')
-    f.write(json_file)
-    f.close()
-    return 'JSON file written to current directory'
 
         

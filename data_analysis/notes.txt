@@ -15,3 +15,9 @@
   'unique_owners': 78534},
  'relationships': {}}
 
+
+nft index
+mc simulation
+std 
+beta 
+avg sale price over time
