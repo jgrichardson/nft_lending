@@ -51,7 +51,10 @@ def drop_tables():
         """,
         """
         DROP TABLE IF EXISTS Social_Media;
+        """,
         """
+        DROP TABLE IF EXISTS data_analysis;
+        """        
     ]
     try:
         with engine.connect() as conn:
@@ -149,6 +152,19 @@ def create_tables():
             handle_url VARCHAR,
             latest_post VARCHAR
         )
+        """,
+        """
+        CREATE TABLE Data_Analysis (
+            contract_id VARCHAR NOT NULL,
+            timestamp TIMESTAMP NOT NULL,
+            percent_chg      NUMERIC,
+            avg_percent_chg  NUMERIC,
+            standard_dev     NUMERIC,
+            avg_standard_dev NUMERIC,
+            variance         NUMERIC,
+            co_variance      NUMERIC,
+            beta             NUMERIC
+        )
         """
     ]
 
@@ -166,9 +182,17 @@ def add_constraints():
     """ add unique constraints to tables in the database"""
     unique_constraints = [
         """
+        ALTER TABLE Contract_Map
+        ADD CONSTRAINT contract_new_contract UNIQUE (contract_id, new_contract_id);
+        """ ,        
+        """
         ALTER TABLE Trade
         ADD CONSTRAINT contract_timestamp UNIQUE (contract_id, timestamp);
+        """,
         """
+        ALTER TABLE Data_Analysis
+        ADD CONSTRAINT contract_timestamp_da UNIQUE (contract_id, timestamp);
+        """        
     ]
     try:
         with engine.connect() as conn:

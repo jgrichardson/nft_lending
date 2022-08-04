@@ -48,8 +48,8 @@ def scrub_str(str):
     Returns: string object
     """
     if str is not None:
-        if str.isdigit():
-            return str(str)
+        #if str.isdigit():
+        #    return str(str)
         str = re.sub(r"[\([{'})\]]", "", str)
         str = re.sub(r"%", " pct.", str)
         return str
@@ -1154,15 +1154,18 @@ def update_token_attributes(token_id, df):
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of token data
     """    
+    trait_type = scrub_str(df['trait_type'])
+    value = scrub_str(df['value'])
+
     update_query = f"""
     UPDATE {database_schema}.token_attribute
     SET overall_with_trait_value = {df['overall_with_trait_value']},
         rarity_percentage  = {df['rarity_percentage']},
-        trait_type = '{df['trait_type']}',
-        value = '{df['value']}'      
+        trait_type = '{trait_type}',
+        value = '{value}'      
     WHERE token_id = '{token_id}'
-    """ 
-    try:   
+    """   
+    try:
         with engine.connect() as conn:
             conn.execute(update_query)
     except Exception as ex:  
@@ -1177,16 +1180,19 @@ def insert_token_attributes(token_id, df):
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of trades
     """ 
+    trait_type = scrub_str(df['trait_type'])
+    value = scrub_str(df['value'])
+            
     insert_query = f"""
     INSERT INTO {database_schema}.token_attribute (token_id, overall_with_trait_value, rarity_percentage, trait_type, value)
-    VALUES ('{token_id}', {df['overall_with_trait_value']}, {df['rarity_percentage']}, '{df['trait_type']}', '{df['value']}')
-    """    
-    try:
+    VALUES ('{token_id}', {df['overall_with_trait_value']}, {df['rarity_percentage']}, '{trait_type}', '{value}')
+    """  
+    try:          
         with engine.connect() as conn:
             conn.execute(insert_query)
     except Exception as ex:  
         logger.debug(insert_query)  
-        logger.error(ex)     
+        logger.error(ex)   
 
 
 def save_token_attributes(token_attributes_df):

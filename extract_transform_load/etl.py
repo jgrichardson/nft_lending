@@ -23,9 +23,8 @@ logger = logging.getLogger()
 rarify_api_key = os.getenv("RARIFY_API_KEY")
 
 # Time frame of data pull
-#period = "all_time"
+period = "all_time"
 #period = "90d"
-period = "90d"
 
 
 # Limit the number of contracts to return i.e. default = 10
