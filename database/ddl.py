@@ -29,7 +29,7 @@ def drop_tables():
         DROP TABLE IF EXISTS Network;
         """,
         """
-        DROP TABLE IF EXISTS Contract;
+        DROP TABLE IF EXISTS Collection;
         """,
         """
         DROP TABLE IF EXISTS Contract_Map;
@@ -77,7 +77,7 @@ def create_tables():
         )
         """,
         """
-        CREATE TABLE Contract(
+        CREATE TABLE Collection(
             contract_id VARCHAR PRIMARY KEY,
             address VARCHAR,               
             name VARCHAR,
@@ -104,7 +104,9 @@ def create_tables():
             id_num   VARCHAR,
             name VARCHAR,
             description VARCHAR,
-            contract_id VARCHAR
+            contract_id VARCHAR,
+            rarity_score NUMERIC,
+            ranking INT
         )
         """,
         """
@@ -150,7 +152,8 @@ def create_tables():
             name VARCHAR NOT NULL,
             handle VARCHAR NOT NULL,
             handle_url VARCHAR,
-            latest_post VARCHAR
+            latest_post VARCHAR,
+            hash_tag VARCHAR
         )
         """,
         """
@@ -163,7 +166,8 @@ def create_tables():
             avg_standard_dev NUMERIC,
             variance         NUMERIC,
             co_variance      NUMERIC,
-            beta             NUMERIC
+            beta             NUMERIC,
+            whale_ratio      NUMERIC
         )
         """
     ]
@@ -204,6 +208,28 @@ def add_constraints():
         logger.debug(unique_constraints)
         logger.exception(ex)
 
+def add_unique_indexes():
+    """ ad unique index to tables in the database"""
+    unique_indexes = [
+        """
+        CREATE UNIQUE INDEX idx_token_collection
+        ON token (token_id, contract_id)
+        """,
+        """
+        CREATE UNIQUE INDEX idx_token_trait
+        ON token_attribute (token_id, trait_type)
+        """    
+    ]
+    try:
+        with engine.connect() as conn:
+            # add unique indexes one by one
+            for index in unique_indexes:
+                conn.execute(index)
+                logger.info(index + " Successfully Added!")
+    except Exception as ex:
+        logger.debug(unique_indexes)
+        logger.exception(ex)
+
 
 if __name__ == '__main__':
     try:
@@ -221,6 +247,9 @@ if __name__ == '__main__':
         # Add unique constraints to tables
         add_constraints()
 
+        # Add unique indexes to tables
+        add_unique_indexes()
+        
         # Display all table names in the database
         inspector = inspect(engine)
         database_tables = inspector.get_table_names(database_schema)

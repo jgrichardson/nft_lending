@@ -230,18 +230,18 @@ def save_trade(df):
 
 """
 
-    CRUD Operations for the Contracts table
+    CRUD Operations for the Collection table
 
 """
-def get_all_contracts():
+def get_all_collections():
     """
-    This function returns a list of all the contracts
+    This function returns a list of all the collections
 
     Returns: DataFrame
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contract   
+    FROM {database_schema}.collection  
     """  
     try:  
         df = pd.read_sql_query(sql_query, con = engine)    
@@ -251,16 +251,16 @@ def get_all_contracts():
         logger.error(ex)  
 
 
-def get_contract(contract_id):
+def get_collection(contract_id):
     """
-    This function returns information for a specific contract    
+    This function returns information for a specific collection   
 
     Args: contract_id - a collection's contract id
     Returns: DataFrame
     """       
     sql_query = f"""
     SELECT * 
-    FROM {database_schema}.contract   
+    FROM {database_schema}.collection  
     WHERE contract_id = '{contract_id}'
     """   
     try:     
@@ -271,14 +271,14 @@ def get_contract(contract_id):
         logger.error(ex) 
 
 
-def delete_contract(contract_id):
+def delete_collection(contract_id):
     """
-    This function deletes a specific contract
+    This function deletes a specific collection
 
     Args: contract_id - a collection's contract id
     """       
     delete_query = f"""
-    DELETE FROM {database_schema}.contract   
+    DELETE FROM {database_schema}.collection   
     WHERE contract_id = '{contract_id}'
     """  
     try:  
@@ -290,22 +290,22 @@ def delete_contract(contract_id):
         logger.error(ex) 
 
 
-def check_if_contract_exists(contract_id):
+def check_if_collection_exists(contract_id):
     """
-    This function calls get_contract to check if the contract already exists.  
+    This function calls get_collection to check if the collection already exists.  
     
     Args: contract_id - a collection's contract id
     Returns: Boolean
     """        
-    df = get_contract(contract_id)
+    df = get_collection(contract_id)
     if len(df.index) > 0:
         return True        
     return False
     
 
-def update_contract(contract_id, df):
+def update_collection(contract_id, df):
     """
-    This function updates the contract information
+    This function updates the collection information
     
     Args: contract_id - a collection's contract id
           df - data collection of contract data
@@ -316,7 +316,7 @@ def update_contract(contract_id, df):
     royalties_receiver = scrub_str(df['royalties_receiver'])
 
     update_query = f"""
-    UPDATE {database_schema}.contract
+    UPDATE {database_schema}.collection
     SET address = '{df['address']}',
         name  = '{name}',
         description = '{descr}',        
@@ -338,12 +338,12 @@ def update_contract(contract_id, df):
         logger.error(ex)   
 
 
-def insert_contract(contract_id, df):
+def insert_collection(contract_id, df):
     """
-    This function inserts a new contract
+    This function inserts a new collection
     
     Args: contract_id - a collection's contract id
-          df - data collection of trades
+          df - data collection of collections
     """   
     name = scrub_str(df['name'])
     descr = scrub_str(df['description'])
@@ -351,7 +351,7 @@ def insert_contract(contract_id, df):
     royalties_receiver = scrub_str(df['royalties_receiver'])
 
     insert_query = f"""
-    INSERT INTO {database_schema}.contract (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners, smart_floor_price)
+    INSERT INTO {database_schema}.collection (contract_id, address, name, description, external_url, network_id, primary_interface, royalties_fee_basic_points, royalties_receiver, num_tokens, unique_owners, smart_floor_price)
     VALUES ('{contract_id}', '{df['address']}', '{name}', '{descr}', '{df['external_url']}', '{df['network_id']}', '{df['primary_interface']}', {royalties_fee_basic_points}, '{royalties_receiver}', {df['num_tokens']}, {df['unique_owners']}, {df['smart_floor_price']})
     """             
     try:
@@ -362,22 +362,22 @@ def insert_contract(contract_id, df):
         logger.error(ex)  
     
 
-def save_contract(contract_df):
+def save_collection(contract_df):
     """
-    This function saves the contract data into a postgres database residing in AWS
+    This function saves the collection data into a postgres database residing in AWS
     
-    Args: df - data collection of contracts
+    Args: df - data collection of collections
     """    
     for row_index in contract_df.index: 
         contract_id = contract_df['contract_id'][row_index]
-        # First check if the contract exists
-        contract_exists = check_if_contract_exists(contract_id)
+        # First check if the collection exists
+        collection_exists = check_if_collection_exists(contract_id)
 
-        # If the contract exists then we update the information.  Otherwise, we add a new contract
-        if contract_exists:
-            update_contract(contract_id, contract_df.iloc[row_index])
+        # If the collection exists then we update the information.  Otherwise, we add a new collection
+        if collection_exists:
+            update_collection(contract_id, contract_df.iloc[row_index])
         else:
-            insert_contract(contract_id, contract_df.iloc[row_index])                                
+            insert_collection(contract_id, contract_df.iloc[row_index])                                
 
 
 
@@ -1017,7 +1017,7 @@ def update_token(token_id, df):
     SET id_num = '{df['id_num']}',
         name  = '{name}',
         description = '{descr}',
-        contract_id = '{df['contract_id']}'     
+        contract_id = '{df['contract_id']}'
     WHERE token_id = '{token_id}'
     """ 
     try:   
@@ -1092,17 +1092,19 @@ def get_all_token_attributes():
         logger.error(ex) 
 
 
-def get_token_attributes(token_id):
+def get_token_attribute(token_id, trait_type):
     """
-    This function returns token_attributes information for a specific token  
+    This function returns the token attribute information for a specific token
 
     Args: token_id - a token thats part of a contract i.e. Collection
+          trait_type - part of a token's trait
     Returns: DataFrame
     """       
     sql_query = f"""
     SELECT * 
     FROM {database_schema}.token_attribute 
     WHERE token_id = '{token_id}'
+    AND trait_type = '{trait_type}'
     """        
     try:
         df = pd.read_sql_query(sql_query, con = engine)                
@@ -1112,15 +1114,17 @@ def get_token_attributes(token_id):
         logger.error(ex) 
 
 
-def delete_token_attributes(token_id):
+def delete_token_attribute(token_id, trait_type):
     """
-    This function deletes a specific token attributes
+    This function deletes a specific token attribute
 
     Args: token_id - a token thats part of a contract i.e. Collection
+          trait_type - part of a token's trait
     """       
     delete_query = f"""
     DELETE FROM {database_schema}.token_attribute 
     WHERE token_id = '{token_id}'
+    AND trait_type = '{trait_type}'
     """ 
     try:   
         with engine.connect() as conn:
@@ -1131,15 +1135,16 @@ def delete_token_attributes(token_id):
         logger.error(ex) 
 
 
-def check_if_token_attributes_exists(token_id):
+def check_if_token_attribute_exists(token_id, trait_type):
     """
     This function calls get_token_attributes to check if the token attribute already exists.  
     
     Args: token_id - a token thats part of a contract i.e. Collection
+          trait_type - the trait for the token
     Returns: Boolean
     """  
     try:      
-        df = get_token_attributes(token_id)
+        df = get_token_attribute(token_id, trait_type)
         if len(df.index) > 0:
             return True        
         return False
@@ -1147,23 +1152,23 @@ def check_if_token_attributes_exists(token_id):
         logger.error(ex) 
 
 
-def update_token_attributes(token_id, df):
+def update_token_attribute(token_id, trait_type, df):
     """
-    This function updates the token attributes information
+    This function updates the token attribute information
     
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of token data
     """    
-    trait_type = scrub_str(df['trait_type'])
+    trait_type = scrub_str(trait_type)
     value = scrub_str(df['value'])
 
     update_query = f"""
     UPDATE {database_schema}.token_attribute
     SET overall_with_trait_value = {df['overall_with_trait_value']},
         rarity_percentage  = {df['rarity_percentage']},
-        trait_type = '{trait_type}',
         value = '{value}'      
     WHERE token_id = '{token_id}'
+    AND trait_type = '{trait_type}'
     """   
     try:
         with engine.connect() as conn:
@@ -1173,14 +1178,15 @@ def update_token_attributes(token_id, df):
         logger.error(ex) 
 
 
-def insert_token_attributes(token_id, df):
+def insert_token_attribute(token_id, trait_type, df):
     """
     This function inserts a new token attribute
     
     Args: token_id - a token thats part of a contract i.e. Collection
-          df - data collection of trades
+          trait_type - part of a token's trait
+          df - data collection of token attributes
     """ 
-    trait_type = scrub_str(df['trait_type'])
+    trait_type = scrub_str(trait_type)
     value = scrub_str(df['value'])
             
     insert_query = f"""
@@ -1203,14 +1209,15 @@ def save_token_attributes(token_attributes_df):
     """    
     for row_index in token_attributes_df.index: 
         token_id = token_attributes_df['token_id'][row_index]
-        # First check if the token attributes exists
-        token_attributes_exists = check_if_token_attributes_exists(token_id)
+        trait_type = token_attributes_df['trait_type'][row_index]
+        # First check if the token attribute exists
+        token_attribute_exists = check_if_token_attribute_exists(token_id, trait_type)
         
-        # If the token attributes exists then we update the information.  Otherwise, we add a new token
-        if token_attributes_exists:
-            update_token_attributes(token_id, token_attributes_df.iloc[row_index])
+        # If the token attribute exists then we update the information.  Otherwise, we add a new token attribute
+        if token_attribute_exists:
+            update_token_attribute(token_id, trait_type, token_attributes_df.iloc[row_index])
         else:
-            insert_token_attributes(token_id, token_attributes_df.iloc[row_index])                                
+            insert_token_attribute(token_id, trait_type, token_attributes_df.iloc[row_index])                                
 
 
 
@@ -1304,7 +1311,8 @@ def update_social_media(contract_id, df):
     SET name  = '{df['name']}',
         handle = '{df['handle']}',
         handle_url = '{df['handle_url']}',
-        latest_post = '{df['latest_post']}'
+        latest_post = '{df['latest_post']}',
+        hash_tag = '{df['hash_tag']}'
     WHERE contract_id = '{contract_id}'
     """    
     try:
@@ -1323,8 +1331,8 @@ def insert_social_media(contract_id, df):
           df - data collection of social media accounts
     """    
     insert_query = f"""
-    INSERT INTO {database_schema}.social_media (contract_id, name, handle, handle_url, latest_post)
-    VALUES ('{contract_id}', '{df['name']}', '{df['handle']}', '{df['handle_url']}', '{df['latest_post']}')
+    INSERT INTO {database_schema}.social_media (contract_id, name, handle, handle_url, latest_post, hash_tag)
+    VALUES ('{contract_id}', '{df['name']}', '{df['handle']}', '{df['handle_url']}', '{df['latest_post']}', '{df['hash_tag']}')
     """  
     try:  
         with engine.connect() as conn:
@@ -1350,3 +1358,154 @@ def save_social_media(contract_id, df):
             update_social_media(contract_id, df.iloc[row_index])
         else:
             insert_social_media(contract_id, df.iloc[row_index])                                
+
+
+
+
+"""
+
+    CRUD Operations for the Data_Analysis table
+
+"""
+def get_all_data_analysis(contract_id):
+    """
+    This function retrieves all the data analysis data done for a specific contract  
+
+    Args: contract_id - collection's contract id
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.data_analysis  
+    WHERE contract_id = '{contract_id}'
+    """    
+    try:
+        df = pd.read_sql_query(sql_query, con = engine)    
+        return df
+    except Exception as ex:  
+        logger.debug(sql_query)  
+        logger.error(ex)      
+
+
+def get_data_analysis(contract_id, time):
+    """
+    This function retrieves a specific data analysis information
+    Check by both contract_id and time
+
+    Args: contract_id - a collection's contract id
+          time - the timestamp when the trade was made
+    Returns: DataFrame
+    """       
+    sql_query = f"""
+    SELECT * 
+    FROM {database_schema}.data_analysis  
+    WHERE contract_id = '{contract_id}'
+    AND timestamp = '{time}'
+    """
+    try:        
+        df = pd.read_sql_query(sql_query, con = engine)                
+        return df
+    except Exception as ex: 
+        logger.debug(sql_query)   
+        logger.error(ex)  
+
+
+def delete_data_analysis(contract_id, time):
+    """
+    This function deletes a specific data analysis information 
+    Check by both contract_id and time
+
+    Args: contract_id - a collection's contract id
+          time - the timestamp when the trade was made
+    """       
+    delete_query = f"""
+    DELETE FROM {database_schema}.data_analysis  
+    WHERE contract_id = '{contract_id}'
+    AND timestamp = '{time}'
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(delete_query)
+            print(f"The data analysis for {contract_id} at {time} was successfully deleted!")
+    except Exception as ex:   
+        logger.debug(delete_query) 
+        logger.error(ex)  
+
+
+def check_if_data_analysis_exists(contract_id, time):
+    """
+    This function calls get_data_analysis to check if the data analysis already exists.  
+    
+    Args: contract_id - a collection's contract id
+          time - the timestamp when the trade was made
+    Returns: Boolean
+    """  
+    try:      
+        df = get_data_analysis(contract_id, time)
+        if len(df.index) > 0:
+            return True        
+        return False
+    except Exception as ex:    
+        logger.error(ex)      
+
+
+def update_data_analysis(df):
+    """
+    This function updates the data analysis table
+    
+    Args: df - data collection of data analysis information
+    """
+    update_query = f"""
+    UPDATE {database_schema}.data_analysis
+    SET percent_chg  = {round(df['percent_chg'], 2)},
+        avg_percent_chg  = {round(df['avg_percent_chg'], 2)},
+        standard_dev = {round(df['standard_dev'], 2)},
+        avg_standard_dev = {round(df['avg_standard_dev'], 2)},
+        variance = {round(df['variance'], 2)},
+        co_variance = {round(df['co_variance'], 2)},
+        beta = {round(df['beta'], 2)},
+        whale_ratio = {round(df['whale_ratio'], 2)}
+    WHERE contract_id = '{df['contract_id']}'
+    AND timestamp = '{df['time']}'
+    """
+    try:    
+        with engine.connect() as conn:
+            conn.execute(update_query)
+    except Exception as ex: 
+        logger.debug(update_query)   
+        logger.error(ex)              
+
+
+def insert_data_analysis(df):
+    """
+    This function inserts a new data analysis done per contract
+    
+    Args: df - data collection of data analysis information
+    """    
+    insert_query = f"""
+    INSERT INTO {database_schema}.data_analysis (contract_id, timestamp, percent_chg, avg_percent_chg, standard_dev, avg_standard_dev, variance, co_variance, beta, whale_ratio)
+    VALUES ('{df['contract_id']}', '{df['time']}', {round(df['percent_chg'], 2)}, {round(df['avg_percent_chg'], 2)}, {round(df['standard_dev'], 2)}, {round(df['avg_standard_dev'], 2)}, {round(df['variance'], 2)}, {round(df['co_variance'], 2)}, {round(df['beta'], 2)}, {round(df['whale_ratio'], 2)})
+    """  
+    try:  
+        with engine.connect() as conn:
+            conn.execute(insert_query)
+    except Exception as ex:  
+        logger.debug(insert_query)  
+        logger.error(ex)      
+
+
+def save_data_analysis(df):
+    """
+    This function saves the data analysis information into a postgres database residing in AWS
+    
+    Args: df - data collection of data analysis information
+    """    
+    for row_index in df.index: 
+        # First check if the data analysis information exists
+        data_analysis_exists = check_if_data_analysis_exists(df.iloc[row_index]['contract_id'], df.iloc[row_index]['time'])
+        
+        # If the data analysis information exists then we update the information.  Otherwise, we add a new data analysis record
+        if data_analysis_exists:
+            update_data_analysis(df.iloc[row_index])
+        else:
+            insert_data_analysis(df.iloc[row_index])                    

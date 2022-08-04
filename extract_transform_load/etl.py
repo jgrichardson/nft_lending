@@ -23,13 +23,16 @@ logger = logging.getLogger()
 rarify_api_key = os.getenv("RARIFY_API_KEY")
 
 # Time frame of data pull
-period = "all_time"
-#period = "90d"
-
+#period = "all_time"
+period = "90d"
+#period = "30d"
 
 # Limit the number of contracts to return i.e. default = 10
 # num_contracts = 100
 num_contracts = 100
+
+# Limit the number of tokens per contract to return i.e. default = 10
+num_tokens = 10
 
 
 
@@ -206,7 +209,7 @@ contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
 
 if not contracts_df.empty:
     # Get a list of contract_ids from the collection
-    #contracts_list = contracts_df.contract_id.values.tolist()
+    contracts_list = contracts_df.contract_id.values.tolist()
 
     # Use the following code to obtain the smart floor price in the collection
     smart_floor_url = f"https://api.rarify.tech/data/contracts/contract_id/smart-floor-price"
@@ -217,10 +220,7 @@ if not contracts_df.empty:
 
     # Make call to db.save_contract() passing in a list of contracts 
     # and store the data in the database
-    db.save_contract(contracts_df)
-
-    # Get a list of contract_ids from the collection
-    contracts_list = contracts_df.contract_id.values.tolist()
+    db.save_collection(contracts_df)
 
     # Loop through contracts and get trade information and store data for each contract id
     for contract_id in contracts_list:    
@@ -242,7 +242,7 @@ if not contracts_df.empty:
     # the data for each token.
     for contract_id in contracts_list:
         # Get list of tokens
-        tokens_url = f"https://api.rarify.tech/data/tokens/?filter[contract]={contract_id}"
+        tokens_url = f"https://api.rarify.tech/data/tokens/?page[limit]={num_tokens}&filter[contract]={contract_id}&sort=-relevancy"
 
         # Make API request call to Rarify
         tokens_df = get_tokens_by_contract_id(api_request(tokens_url, rarify_api_key))
