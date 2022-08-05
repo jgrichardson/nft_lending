@@ -1,0 +1,9 @@
+tweepy
+streamlit
+pandas
+transformers
+tensorflow
+python-dotenv
+hvplot
+holoviews
+plost
