@@ -1,21 +1,27 @@
-import re
-import tweepy
-from tweepy import OAuthHandler
-import os
-from dotenv import load_dotenv
+# Import Required Libraries
+import re # Regex library for cleaning up Tweet text
+import tweepy # Twitter API library
+from tweepy import OAuthHandler # Twitter API library
+import os # Utility librarylibrary
+from dotenv import load_dotenv # For loading env variables
 import numpy as np
 import pandas as pd
 import requests
-import time
+import time # For controlling rate limits to APIs
 
+# Libraries needed for Streamlit, and integrating plotting with Plost
 import streamlit as st
 import hvplot.pandas
 import holoviews as hv
 import plost
-# You will need to run 'pip install --force-reinstall --no-deps bokeh==2.4.3' to support bokeh
+
+# In your conda env, you will need to run 'pip install --force-reinstall --no-deps bokeh==2.4.3' to support bokeh extension
 hv.extension('bokeh', logo=False)
 
-# Set the streamlit page layout to wide
+# To run .py script in Streamlit, a requirements.txt file is needed to tell Streamlit how to set up your Python env, what libraries are needed, etc.
+# In your shell run 'pip install -r requirements.txt'
+
+# Set the streamlit page layout to wide (reduces padding on the sides, makes page responsive)
 st.set_page_config(layout="wide")
 
 class TwitterClient(object):
@@ -33,6 +39,7 @@ class TwitterClient(object):
         access_token = os.getenv('TWITTER_ACCESS_TOKEN')
         access_token_secret = os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
         twitter_bearer_token = os.getenv('TWITTER_BEARER_TOKEN')
+        meaningcloud_key = os.getenv('MEANINGCLOUD_KEY')
   
         # attempt authentication
         try:
@@ -59,13 +66,12 @@ class TwitterClient(object):
         '''
         Classify sentiment of passed tweet
         '''
-        # Set base URL and API key for meaningcloud
+        # Set base URL for meaningcloud API
         sentiment_url = "https://api.meaningcloud.com/sentiment-2.1"
-        key = os.getenv('MEANINGCLOUD_KEY')
         
         # Set payload in dict variable for passing to meaningcloud API
         payload={
-            'key': key,
+            'key': meaningcloud_key,
             'txt': self.clean_tweet(tweet),
             'lang': 'en',
         }
@@ -178,8 +184,7 @@ def main():
         #for tweet in netweets[:10]:
             #print(tweet['text'])
     
-    # Create a dataframe from the results_dict
-    
+    # Create a dataframe with response data from tweets/sentiment API (for final submission, this will be replaced with called API data above)
     results_dict = {'tag': ['#meebits',
       '#cryptopunks',
       '#terraforms',
@@ -195,26 +200,31 @@ def main():
      'neu': [8, 3, 13, 32, 3, 0, 17, 0, 4, 1]}
     results_df = pd.DataFrame(results_dict)
     
-    # Create a plot
+    # Create a plot for the sentiment results
     my_plot = results_df.hvplot(x="tag", kind="bar", title="Twitter Sentiment Analysis for Top 10 NFT Collections by Trade Volume")
     
+    # Create a dataframe of some sample NFT collections, to simulate our "index", used to demo donut plot
     df = pd.DataFrame(np.random.randn(7, 2), columns=('Collection Name', 'Contract ID'))
-    stocks = pd.read_csv('stocks_toy.csv')
+    collections = pd.read_csv('collections.csv')
 
-    # Title Row
+    # Render the grid and the contents for the Streamlit dashboard
+    # See https://docs.streamlit.io/library/api-reference/layout
+    
+    # Row A (example of a title row)
     a1, a2 = st.columns((7,3))
     with a1:
         st.markdown('# NFT Lending Analysis')
         st.markdown('#')
     
-    # Row B
+    # Row B (example of some metric widgets)
     b1, b2, b3, b4 = st.columns(4)
     b1.metric("Wind", "9mph", "-8%")
     b2.metric("Pressure", "35bars", "+2%")
     b3.metric("Humidity", "45%", "+4%")
     b4.metric("UV Index", "90%", "-12%")
     
-    # Row C
+    # Row C (my sentiment plot, other plots from the team)
+    # Adds an "expander" widget below each plot so we can include narrative/story
     c1, c2 = st.columns(2)
     with c1:
         st.markdown('### Sentiment')
@@ -225,8 +235,6 @@ def main():
                 Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
                 mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
             """)
-
-    
     with c2:
         st.markdown('### Top Collections')
         st.table(df)
@@ -236,14 +244,13 @@ def main():
                 Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
                 mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
             """)
-        
-
-    # Row D
+    
+    # Row D (sample donut widget using sample collections data)
     d1, d2, d3, d4 = st.columns(4)
     with d1:
         st.markdown('### Portfolio')
         plost.donut_chart(
-            data=stocks,
+            data=collections,
             theta='q2',
             color='collection')
         with st.expander("See explanation"):
@@ -256,5 +263,3 @@ def main():
 if __name__ == "__main__":
     # calling main function
     main()
-    
-    
