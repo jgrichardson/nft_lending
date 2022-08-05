@@ -11,8 +11,12 @@ import time
 import streamlit as st
 import hvplot.pandas
 import holoviews as hv
+import plost
 # You will need to run 'pip install --force-reinstall --no-deps bokeh==2.4.3' to support bokeh
 hv.extension('bokeh', logo=False)
+
+# Set the streamlit page layout to wide
+st.set_page_config(layout="wide")
 
 class TwitterClient(object):
     '''
@@ -125,39 +129,39 @@ def main():
     tag_list = ["#mayc", "#moonbirds"]
     
     # Set dict variable to contain the results
-    results_dict = {
-        'tag' : tag_list,
-        'pos' : [],
-        'neg' : [],
-        'neu' : [],
-    }
+    # results_dict = {
+    #     'tag' : tag_list,
+    #     'pos' : [],
+    #     'neg' : [],
+    #     'neu' : [],
+    # }
     
     # Iterate through hashtags
-    for tag in tag_list:
-    
+    #for tag in tag_list:
+        
         # Call function to get tweets
-        '''
-        Passing hashtag as query to Twitter API
-        '''
-        tweets = api.get_tweets(query = tag, count = 10)
+        # '''
+        # Passing hashtag as query to Twitter API
+        # '''
+        ### tweets = api.get_tweets(query = tag, count = 10)
         
         # Variables to store counts of pos, neg, and neu sentiments
-        ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive']
-        ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative']
-        netweets = [tweet for tweet in tweets if tweet['sentiment'] == 'neutral']
+        # ptweets = [tweet for tweet in tweets if tweet['sentiment'] == 'positive']
+        # ntweets = [tweet for tweet in tweets if tweet['sentiment'] == 'negative']
+        # netweets = [tweet for tweet in tweets if tweet['sentiment'] == 'neutral']
         
-        print()
-        print()
-        # Print out breakdown of pct of tweets for each collection that are pos, neg, and neu
-        print("Positive tweets percentage: {} %".format(100*len(ptweets)/len(tweets)))
-        print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets)))
-        print("Neutral tweets percentage: {} % \
-            ".format(100*(len(tweets) -(len( ntweets )+len( ptweets)))/len(tweets)))
+        # print()
+        # print()
+        # # Print out breakdown of pct of tweets for each collection that are pos, neg, and neu
+        # print("Positive tweets percentage: {} %".format(100*len(ptweets)/len(tweets)))
+        # print("Negative tweets percentage: {} %".format(100*len(ntweets)/len(tweets)))
+        # print("Neutral tweets percentage: {} % \
+        #     ".format(100*(len(tweets) -(len( ntweets )+len( ptweets)))/len(tweets)))
         
         # Append count results to dict variable for later plotting
-        results_dict["pos"].append(len(ptweets))
-        results_dict["neg"].append(len(ntweets))
-        results_dict["neu"].append(len(tweets) - len( ptweets) - len( ntweets ))
+        # results_dict["pos"].append(len(ptweets))
+        # results_dict["neg"].append(len(ntweets))
+        # results_dict["neu"].append(len(tweets) - len( ptweets) - len( ntweets ))
 
         # printing first 5 positive tweets
         #print("\n\nPositive tweets:")
@@ -175,16 +179,79 @@ def main():
             #print(tweet['text'])
     
     # Create a dataframe from the results_dict
+    
+    results_dict = {'tag': ['#meebits',
+      '#cryptopunks',
+      '#terraforms',
+      '#mayc',
+      '#moonbirds',
+      '#azuki',
+      '#bayc',
+      '#dreadfulz',
+      '#clonex',
+      '#beanz'],
+     'pos': [3, 12, 31, 8, 14, 3, 6, 6, 24, 26],
+     'neg': [39, 35, 6, 10, 33, 47, 27, 21, 22, 23],
+     'neu': [8, 3, 13, 32, 3, 0, 17, 0, 4, 1]}
     results_df = pd.DataFrame(results_dict)
     
-    # Display the results of the df and dict
-    # display(results_df)
-    # display(results_dict)
+    # Create a plot
+    my_plot = results_df.hvplot(x="tag", kind="bar", title="Twitter Sentiment Analysis for Top 10 NFT Collections by Trade Volume")
     
-    # Plot the results
-    my_plot = results_df.hvplot(x="tag", kind="bar", title="Twitter Sentiment Analysis for Top 10 NFT Collections by Trade Volume", width=1200, height=500)
-    st.bokeh_chart(hv.render(my_plot, backend='bokeh'))
+    df = pd.DataFrame(np.random.randn(7, 2), columns=('Collection Name', 'Contract ID'))
+    stocks = pd.read_csv('stocks_toy.csv')
+
+    # Title Row
+    a1, a2 = st.columns((7,3))
+    with a1:
+        st.markdown('# NFT Lending Analysis')
+        st.markdown('#')
+    
+    # Row B
+    b1, b2, b3, b4 = st.columns(4)
+    b1.metric("Wind", "9mph", "-8%")
+    b2.metric("Pressure", "35bars", "+2%")
+    b3.metric("Humidity", "45%", "+4%")
+    b4.metric("UV Index", "90%", "-12%")
+    
+    # Row C
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown('### Sentiment')
+        st.bokeh_chart(hv.render(my_plot, backend='bokeh'))
+        with st.expander("See explanation"):
+            st.write("""
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
+                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
+            """)
+
+    
+    with c2:
+        st.markdown('### Top Collections')
+        st.table(df)
+        with st.expander("See explanation"):
+            st.write("""
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
+                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
+            """)
         
+
+    # Row D
+    d1, d2, d3, d4 = st.columns(4)
+    with d1:
+        st.markdown('### Portfolio')
+        plost.donut_chart(
+            data=stocks,
+            theta='q2',
+            color='collection')
+        with st.expander("See explanation"):
+            st.write("""
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
+                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
+            """)
     
 if __name__ == "__main__":
     # calling main function
