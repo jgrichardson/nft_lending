@@ -122,7 +122,7 @@ def main():
     
     # Set list variable to contain Twitter hashtags for the top 10 collections by trading volume
     #tag_list = ["#meebits", "#cryptopunks", "#terraforms", "#mayc", "#moonbirds", "#azuki", "#bayc", "#dreadfulz", "#clonex", "#beanz"]
-    tag_list = ["#meebits", "#cryptopunks"]
+    tag_list = ["#mayc", "#moonbirds"]
     
     # Set dict variable to contain the results
     results_dict = {
