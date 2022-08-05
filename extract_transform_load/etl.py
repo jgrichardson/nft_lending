@@ -24,15 +24,18 @@ rarify_api_key = os.getenv("RARIFY_API_KEY")
 
 # Time frame of data pull
 #period = "all_time"
-period = "90d"
+#period = "90d"
 #period = "30d"
+#period = "7d"
+period = "24h"
+
 
 # Limit the number of contracts to return i.e. default = 10
 # num_contracts = 100
 num_contracts = 100
 
 # Limit the number of tokens per contract to return i.e. default = 10
-num_tokens = 10
+num_tokens = 100
 
 
 
