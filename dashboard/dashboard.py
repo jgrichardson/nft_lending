@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import requests
 import time # For controlling rate limits to APIs
+from PIL import Image # Support for images
 
 # Libraries needed for Streamlit, and integrating plotting with Plost
 import streamlit as st
@@ -211,11 +212,15 @@ def main():
     # See https://docs.streamlit.io/library/api-reference/layout
     
     # Row A (example of a title row)
-    a1, a2 = st.columns((7,3))
+    a1, a2 = st.columns((2,8))
     with a1:
+        st.image('../images/sample_logo.png')
+    with a2:
         st.markdown('# NFT Lending Analysis')
-        st.markdown('#')
     
+    # Insert a spacer
+    st.markdown('#')
+
     # Row B (example of some metric widgets)
     b1, b2, b3, b4 = st.columns(4)
     b1.metric("Wind", "9mph", "-8%")
