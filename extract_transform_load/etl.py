@@ -31,7 +31,6 @@ period = "24h"
 
 
 # Limit the number of contracts to return i.e. default = 10
-# num_contracts = 100
 num_contracts = 100
 
 # Limit the number of tokens per contract to return i.e. default = 10
@@ -85,7 +84,8 @@ def get_smart_floor_price(obj_json):
     #    f.write(json_serialized)
 
     # Display response in json format
-    #print(json_serialized)  
+    #print(json_serialized) 
+ 
     try:        
         price = round(float(obj_json['data']['attributes']['price']) * 10**-18, 2)
     except Exception as ex:
@@ -99,14 +99,15 @@ def get_smart_floor_price(obj_json):
 
 def get_tokens_by_contract_id(obj_json):
     # Serial json data
-    json_serialized = json.dumps(obj_json, indent = 4)
+    #json_serialized = json.dumps(obj_json, indent = 4)
 
     # Output json data to a file
-    with open('tokens_by_contract_response.json', 'w') as f:
-        f.write(json_serialized)
+    #with open('tokens_by_contract_response.json', 'w') as f:
+    #    f.write(json_serialized)
 
     # Display response in json format
-    #print(json_serialized)  
+    #print(json_serialized) 
+ 
     # Initial Dataframe
     token_df = pd.DataFrame()
     try:
@@ -129,14 +130,14 @@ def get_tokens_by_contract_id(obj_json):
 
 def get_token_attributes(obj_json):
     # Serial json data
-    json_serialized = json.dumps(obj_json, indent = 4)
+    #json_serialized = json.dumps(obj_json, indent = 4)
 
     # Output json data to a file
-    with open('token_attributes_response.json', 'w') as f:
-        f.write(json_serialized)
+    #with open('token_attributes_response.json', 'w') as f:
+    #    f.write(json_serialized)
 
     # Display response in json format
-    #print(obj_json['included']) 
+    #print(obj_json_serialized) 
 
     # Initialize Dataframe and Array
     token_df = pd.DataFrame()
@@ -158,14 +159,15 @@ def get_token_attributes(obj_json):
 
 def get_trades(obj_json):
     # Serial json data
-    json_serialized = json.dumps(obj_json, indent = 4)
+    #json_serialized = json.dumps(obj_json, indent = 4)
 
     # Output json data to a file
-    with open('trades_response.json', 'w') as f:
-        f.write(json_serialized)
+    #with open('trades_response.json', 'w') as f:
+    #    f.write(json_serialized)
 
     # Display response in json format
     #print(json_serialized)  
+
     # Initialize Dataframe
     trades_df = pd.DataFrame()
 
