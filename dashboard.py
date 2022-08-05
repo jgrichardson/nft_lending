@@ -206,7 +206,7 @@ def main():
     
     # Create a dataframe of some sample NFT collections, to simulate our "index", used to demo donut plot
     df = pd.DataFrame(np.random.randn(7, 2), columns=('Collection Name', 'Contract ID'))
-    collections = pd.read_csv('./collections.csv')
+    collections = pd.read_csv('collections.csv')
 
     # Render the grid and the contents for the Streamlit dashboard
     # See https://docs.streamlit.io/library/api-reference/layout
@@ -214,7 +214,7 @@ def main():
     # Row A (example of a title row)
     a1, a2 = st.columns((2,8))
     with a1:
-        st.image('../images/sample_logo.png')
+        st.image('images/sample_logo.png')
     with a2:
         st.markdown('# NFT Lending Analysis')
     
