@@ -4,3 +4,5 @@ pandas
 transformers
 tensorflow
 python-dotenv
+hvplot
+holoviews
