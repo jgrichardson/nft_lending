@@ -83,8 +83,8 @@ def get_smart_floor_price(obj_json):
     #with open('smart_response.json', 'w') as f:
     #    f.write(json_serialized)
 
-    # Display response in json format
-    #print(json_serialized) 
+    # Log response in json format
+    #logger.info(json_serialized) 
  
     try:        
         price = round(float(obj_json['data']['attributes']['price']) * 10**-18, 2)
@@ -105,8 +105,8 @@ def get_tokens_by_contract_id(obj_json):
     #with open('tokens_by_contract_response.json', 'w') as f:
     #    f.write(json_serialized)
 
-    # Display response in json format
-    #print(json_serialized) 
+    # Log response in json format
+    #logger.info(json_serialized) 
  
     # Initial Dataframe
     token_df = pd.DataFrame()
@@ -136,8 +136,8 @@ def get_token_attributes(obj_json):
     #with open('token_attributes_response.json', 'w') as f:
     #    f.write(json_serialized)
 
-    # Display response in json format
-    #print(obj_json_serialized) 
+    # Log response in json format
+    #logger.info(obj_json_serialized) 
 
     # Initialize Dataframe and Array
     token_df = pd.DataFrame()
@@ -165,8 +165,8 @@ def get_trades(obj_json):
     #with open('trades_response.json', 'w') as f:
     #    f.write(json_serialized)
 
-    # Display response in json format
-    #print(json_serialized)  
+    # Log response in json format
+    #logger.info(json_serialized)  
 
     # Initialize Dataframe
     trades_df = pd.DataFrame()
@@ -206,7 +206,7 @@ def get_trades(obj_json):
 
 
 # Get list of top 100 contracts by highest volume
-contracts_url = f"https://api.rarify.tech/data/contracts/?page[limit]={num_contracts}&sort=-insights.volume"
+contracts_url = f"https://api.rarify.tech/data/contracts/?filter[network]=ethereum&page[limit]={num_contracts}&sort=-insights.volume"
 
 
 # Make API request call to Rarify to get a list of top 100 collections
@@ -223,7 +223,7 @@ if not contracts_df.empty:
     # an NFT's floor price within the collection would sell for in the open market.
     contracts_df['smart_floor_price'] = [get_smart_floor_price(api_request(smart_floor_url.replace('contract_id', i), rarify_api_key)) for i in contracts_df['contract_id']]
 
-    # Make call to db.save_contract() passing in a list of contracts 
+    # Make call to db.save_collection() passing in a list of contracts 
     # and store the data in the database
     db.save_collection(contracts_df)
 
@@ -243,6 +243,8 @@ if not contracts_df.empty:
             trades_df.set_index("time")
             db.save_trade(trades_df)
 
+    tokens_list = []
+    
     # Loop through contracts and get tokens associated with the collection.  Then store
     # the data for each token.
     for contract_id in contracts_list:
@@ -259,30 +261,38 @@ if not contracts_df.empty:
             db.save_token(tokens_df)
 
             # Get a list of token_ids from the list of tokens
-            tokens_list = tokens_df.token_id.values.tolist()
+            tokens_list.append(tokens_df.token_id.values.tolist())
 
-            for token_id in tokens_list:
-                # Make API request call to Rarify to get token attributes i.e. the rarity percentage, the overall trait value, trait_type, etc. per coin
-                token_url = f"https://api.rarify.tech/data/tokens/{token_id}/?include=attributes_stats"
-                token_attributes_df = get_token_attributes(api_request(token_url, rarify_api_key))
 
-                if not token_attributes_df.empty:     
-                    token_attributes_df["token_id"] = token_id  
-                    # Make call to db.save_token_attributes() passing in a dataframe of token attributes per token
-                    db.save_token_attributes(token_attributes_df)
+    for token in tokens_list:
+        for token_id in token:
+            logger.info(f"TokenAttributes for token_id is {token_id}")
+            # Make API request call to Rarify to get token attributes i.e. the rarity percentage, the overall trait value, trait_type, etc. per coin
+            token_url = f"https://api.rarify.tech/data/tokens/{token_id}/?include=attributes_stats"
+            token_attributes_df = get_token_attributes(api_request(token_url, rarify_api_key))
 
-                # Make API request call to Rarify to get trades per token
-                trade_url = f"https://api.rarify.tech/data/tokens/{token_id}/insights/{period}"
-                trades_df = get_trades(api_request(trade_url, rarify_api_key))
+            if not token_attributes_df.empty:     
+                token_attributes_df["token_id"] = token_id  
+                # Make call to db.save_token_attributes() passing in a dataframe of token attributes per token
+                db.save_token_attributes(token_attributes_df)
+
+
+    for token in tokens_list:
+        for token_id in token:
+            logger.info(f"TokenTrades for token_id is {token_id}")
+            # Make API request call to Rarify to get trades per token
+            trade_url = f"https://api.rarify.tech/data/tokens/{token_id}/insights/{period}"
+            trades_df = get_trades(api_request(trade_url, rarify_api_key))
                 
-                if not trades_df.empty:
-                    trades_df["contract_id"] = token_id
-                    trades_df["period"] = period
-                    trades_df["type"] = "token"
-                    trades_df["api_id"] = 'rarify'
-                    trades_df.set_index("time")
-                    # Make call db.save_trade() passing in a list of trades history data per token                    
-                    db.save_trade(trades_df)        
+            if not trades_df.empty:
+                trades_df["contract_id"] = token_id
+                trades_df["period"] = period
+                trades_df["type"] = "token"
+                trades_df["api_id"] = 'rarify'
+                trades_df.set_index("time")
+                # Make call db.save_trade() passing in a list of trades history data per token                    
+                db.save_trade(trades_df)        
+
 
 # Get list of whales that own the specified contract
 #whales_id = "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"

@@ -216,13 +216,17 @@ def save_trade(df):
     
     Args: df - data collection of trades
     """    
-    for row_index in df.index: 
+    for row_index in df.index:      
+        # Write contract_id to log file
+        logger.info(f"save_trade() function called for contract_id: {df.iloc[row_index]['contract_id']} and timestamp: {df.iloc[row_index]['time']}")               
+
         # First check if the trade exists
         trade_exists = check_if_trade_exists(df.iloc[row_index]['contract_id'], df.iloc[row_index]['time'])
         
         # If the trade exists then we update the information.  Otherwise, we add a new trade
         if trade_exists:
-            update_trade(df.iloc[row_index])
+            #update_trade(df.iloc[row_index])
+            pass
         else:
             insert_trade(df.iloc[row_index])                    
 
@@ -370,6 +374,9 @@ def save_collection(contract_df):
     """    
     for row_index in contract_df.index: 
         contract_id = contract_df['contract_id'][row_index]
+        # Write contract_id to log file
+        logger.info(f"save_collection() function called for contract_id: {contract_id}")    
+
         # First check if the collection exists
         collection_exists = check_if_collection_exists(contract_id)
 
@@ -1058,12 +1065,17 @@ def save_token(token_df):
     """    
     for row_index in token_df.index: 
         token_id = token_df['token_id'][row_index]
+
+        # Write token_id to log file
+        logger.info(f"save_token() function called for token_id: {token_id}")               
+
         # First check if the token exists
         token_exists = check_if_token_exists(token_id)
         
         # If the token exists then we update the information.  Otherwise, we add a new token
         if token_exists:
-            update_token(token_id, token_df.iloc[row_index])
+            #update_token(token_id, token_df.iloc[row_index])
+            pass
         else:
             insert_token(token_id, token_df.iloc[row_index])                                
 
@@ -1159,7 +1171,6 @@ def update_token_attribute(token_id, trait_type, df):
     Args: token_id - a token thats part of a contract i.e. Collection
           df - data collection of token data
     """    
-    trait_type = scrub_str(trait_type)
     value = scrub_str(df['value'])
 
     update_query = f"""
@@ -1186,7 +1197,6 @@ def insert_token_attribute(token_id, trait_type, df):
           trait_type - part of a token's trait
           df - data collection of token attributes
     """ 
-    trait_type = scrub_str(trait_type)
     value = scrub_str(df['value'])
             
     insert_query = f"""
@@ -1210,12 +1220,18 @@ def save_token_attributes(token_attributes_df):
     for row_index in token_attributes_df.index: 
         token_id = token_attributes_df['token_id'][row_index]
         trait_type = token_attributes_df['trait_type'][row_index]
+        trait_type = scrub_str(trait_type)    
+
+        # Write token_id and trait_type to log file
+        logger.info(f"save_token_attributes() function called for token_id: {token_id} and trait_type: {trait_type}") 
+
         # First check if the token attribute exists
         token_attribute_exists = check_if_token_attribute_exists(token_id, trait_type)
         
         # If the token attribute exists then we update the information.  Otherwise, we add a new token attribute
         if token_attribute_exists:
-            update_token_attribute(token_id, trait_type, token_attributes_df.iloc[row_index])
+            #update_token_attribute(token_id, trait_type, token_attributes_df.iloc[row_index])
+            pass
         else:
             insert_token_attribute(token_id, trait_type, token_attributes_df.iloc[row_index])                                
 
