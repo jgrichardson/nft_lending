@@ -1,0 +1,8 @@
+streamlit
+plost
+holoviews
+hvplot
+python-dotenv
+pandas
+sqlalchemy
+numpy
