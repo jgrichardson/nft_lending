@@ -1,3 +1,4 @@
+tweepy
 streamlit
 plost
 holoviews
@@ -6,3 +7,5 @@ python-dotenv
 pandas
 sqlalchemy
 numpy
+transformers
+tensorflow
