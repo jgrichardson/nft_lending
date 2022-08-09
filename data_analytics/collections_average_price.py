@@ -22,7 +22,7 @@ st.set_page_config(layout='wide')
 load_dotenv()
 
 rarify_api_key = os.getenv("RARIFY_API_KEY")
-database_uri = os.getenv("DATABASE_URI")
+database_uri = os.getenv("DATABASE_URL")
 database_schema = os.getenv("DATABASE_SCHEMA")
 
 engine = create_engine(database_uri, echo = False)
@@ -79,6 +79,7 @@ INNER JOIN {database_schema}.collection c ON c.contract_id = t.contract_id
 INNER JOIN {database_schema}.network n ON n.network_id = c.network_id
 WHERE n.network_id = 'ethereum' 
 AND c.name IN ('CryptoPunks', 'BoredApeYachtClub', 'MutantApeYachtClub', 'Otherdeed', 'Azuki', 'CloneX', 'Moonbirds', 'Doodles', 'Meebits', 'Cool Cats', 'BoredApeKennelClub')
+AND DATE_TRUNC('month', t.timestamp) > '2020-12-31'
 GROUP BY c.name, DATE_TRUNC('month', t.timestamp)
 HAVING MIN(avg_price) > 0.0
 ORDER BY SUM(t.volume)  DESC    
