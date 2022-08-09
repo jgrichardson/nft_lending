@@ -6,6 +6,7 @@ hvplot
 python-dotenv
 pandas
 sqlalchemy
+psycopg2
 numpy
 transformers
 tensorflow

@@ -19,7 +19,7 @@ WHERE rarity_score IS NULL
 --
 WITH tn as (
 	SELECT t.token_id,
-           RANK() OVER (PARTITION BY c.contract_id ORDER BY t.rarity_score DESC) rnk
+           ROW_NUMBER() OVER (PARTITION BY c.contract_id ORDER BY t.rarity_score DESC) rnk
 	FROM token t
 	INNER JOIN collection c ON t.contract_id = c.contract_id
 )
