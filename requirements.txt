@@ -1,9 +1,11 @@
 tweepy
 streamlit
+plost
+holoviews
+hvplot
+python-dotenv
 pandas
+sqlalchemy
+numpy
 transformers
 tensorflow
-python-dotenv
-hvplot
-holoviews
-plost
