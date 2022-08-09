@@ -21,3 +21,9 @@ mc simulation
 std 
 beta 
 avg sale price over time
+
+
+
+drop from Betas list
+ProjectKevins_beta                   11.824373
+InvisibleSociety_beta

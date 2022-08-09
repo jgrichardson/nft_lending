@@ -3,6 +3,22 @@ import pandas as pd
 import requests
 import json
 
+def fetch_rarify_data(url, key):
+    """
+    param url: (type: str) The url must be supplied with a valid network_id, contract_id, and token_id
+    param key: (type: str) The function returns the sale_history_data for our targeted collection at the 'history' endpoint
+    """
+    sale_history_data = requests.get(
+        url,
+        headers={"Authorization": f"Bearer {key}"}
+    ).json()
+    try:
+        trades_history = sale_history_data['included'][1]['attributes']['history']
+    except Exception: 
+        trades_history = sale_history_data['included'][0]['attributes']['history']
+
+    return trades_history
+
 def write_json_file(json_object, file_name: str):
     """
     param json_dict: (type: dict) A Json formatted datatype
@@ -17,21 +33,6 @@ def write_json_file(json_object, file_name: str):
     return 'JSON file written to current directory'
 
     
-def fetch_rarify_data(url, key):
-    """
-    param url: (type: str) The url must be supplied with a valid network_id, contract_id, and token_id
-    param key: (type: str) The function returns the sale_history_data for our targeted collection at the 'history' endpoint
-
-    """
-    sale_history_data = requests.get(
-        url,
-        headers={"Authorization": f"Bearer {key}"}
-    ).json()
-    try:
-        trades_history = sale_history_data['included'][1]['attributes']['history']
-    except Exception: 
-        trades_history = sale_history_data['included'][0]['attributes']['history']
-    return trades_history
 
 def fetch_data_address(url, key):
     """
@@ -46,12 +47,12 @@ def fetch_data_address(url, key):
     ).json()
     return sale_history_data['data'][0]['attributes']['address']
 
-def fetch_top_collections_data(url, key):
+def fetch_top_collections(url, key):
     """
     param url: (type: str) The url must be supplied with a valid network_id, contract_id, and token_id
     param key: (type: str) The function returns the sale_history_data for our targeted collection at the 'history' endpoint
     
-    The function returns the sale_history_data for our targeted collection at the 'history' endpoint
+    The function returns the identifying information for our targeted collection so that we can fetch data from the collections
 
     Will return a dictionary containing the name and address for the collection you are querying
     """
@@ -64,8 +65,11 @@ def fetch_top_collections_data(url, key):
     data_dict = {}
     for point in sale_history_data:
         contract_address = point['attributes']['address']
-        contract_name = point['attributes']['network']
-        data_dict[contract_address] = contract_name
+        contract_network = point['attributes']['network']
+        contract_name = point['attributes']['name']
+        unique_owners = point['attributes']['unique_owners']
+        tokens = point['attributes']['tokens']
+        data_dict[contract_address] = {'name': contract_name, 'network': contract_network, 'unique_owners': unique_owners, 'tokens': tokens}
     
     return data_dict
 
@@ -88,38 +92,23 @@ def fetch_collections_data(contract_ids: dict, rarify_api_key: str):
     This function concatenates all the DataFrames that are present in the DataFrame list that we constructed.
 
     """
-    df_list = []
-    convert_dict = {
-                    'avg_price': float,
-                    'max_price': float,
-                    'min_price': float,
-                    'trades': float,
-                    'unique_buyers': float,
-                    'volume': float,
-                   }  
-    for address in contract_ids.keys():
-        contract_id = address
-        network_id = contract_ids[address]
-        network_id = "ethereum"
+    
+    # df_list = []
+    df_dict = {}
+    for contract_id in contract_ids.keys():
+        network_id = contract_ids[contract_id]
         collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/90d"
-        # curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
-        curr_df = pd.DataFrame(fetch_raw(collections_baseurl, rarify_api_key))
-        curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
-        curr_df = curr_df.set_index('time')
-        curr_df = curr_df.astype(convert_dict)
-        curr_df[['avg_price', 'max_price', 'min_price', 'volume']] = curr_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
-        df_list.append(curr_df)
-    sum_df = pd.concat(df_list, axis=1, keys=contract_ids.keys())
-    return sum_df
+        data = fetch_rarify_data(collections_baseurl, rarify_api_key)
+        # df_list.append(data)
+        df_dict[contract_id] = data
+    return df_dict
 
 
-def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
+def fetch_top_50_collections_data_api(contract_ids: dict, rarify_api_key: str):
     """
     :param contract_ids: (type: dict) Houses the contract addresses and the collection names
     :param rarify_api_key: (type: str) Your authentication key from the rarify API
-
     Takes a dictionary that houses collection addresses in the values
-
     This function aggregates the data from a selection of NFT collections into a double-layered DataFrame which can be used to run a Monte Carlo simulation
     Queries all time data 
     
@@ -138,20 +127,112 @@ def fetch_top_50_collections_data(contract_ids: dict, rarify_api_key: str):
                     'trades': float,
                     'unique_buyers': float,
                     'volume': float,
-                   }  
+                   }
     for contract_id in contract_ids.keys():
-        network_id = contract_ids[contract_id]['network']
-        collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/all_time"
-        collections_json = fetch_rarify_data(collections_baseurl, rarify_api_key)
-        write_json_file(collections_json, 'collections_trade_history.json')
-        curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
-        curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
-        curr_df = curr_df.set_index('time')
-        curr_df = curr_df.astype(convert_dict)
-        curr_df[['avg_price', 'max_price', 'min_price', 'volume']] = curr_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
-        df_list.append(curr_df)
+        try:
+            network_id = contract_ids[contract_id]['network']
+            collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/all_time"
+            curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
+            curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
+            curr_df = curr_df.set_index('time')
+            curr_df = curr_df.astype(convert_dict)
+            curr_df[['avg_price', 'max_price', 'min_price', 'volume']] = curr_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
+            df_list.append(curr_df)
+        except Exception:
+            pass
     sum_df = pd.concat(df_list, axis=1, keys=contract_ids.keys())
     return sum_df
+
+def find_bad_data(contract_ids: dict, rarify_api_key: str):
+    """
+    :param contract_ids: (type: dict) Houses the contract addresses and the collection names
+    :param rarify_api_key: (type: str) Your authentication key from the rarify API
+    Takes a dictionary that houses collection addresses in the values
+    This function aggregates the data from a selection of NFT collections into a double-layered DataFrame which can be used to run a Monte Carlo simulation
+    Queries all time data 
+    
+    The function iterates through the dictionary of addresses that you supply to it and makes an API call for each address.
+    We then preprocess the data like we did before, formatting and setting the index as the 'time' column,
+    and converting the string numbers to integers using the df.astype() method. We also convert the prices to eth from gwei using a factor. 
+    We then append the most recently constructed dataframe to the list that we instantiated at the top of the function
+    
+    This function returns a concatenation of all the DataFrames that are present in the DataFrame list that we constructed.
+    """
+    df_list = []
+    convert_dict = {
+                    'avg_price': float,
+                    'max_price': float,
+                    'min_price': float,
+                    'trades': float,
+                    'unique_buyers': float,
+                    'volume': float,
+                   }
+    for contract_id in contract_ids.keys():
+        try:
+            network_id = contract_ids[contract_id]['network']
+            collections_baseurl = f"https://api.rarify.tech/data/contracts/{network_id}:{contract_id}/insights/all_time"
+            curr_df = pd.DataFrame(fetch_rarify_data(collections_baseurl, rarify_api_key))
+            curr_df['time'] = pd.to_datetime(curr_df['time'], infer_datetime_format=True)
+            curr_df = curr_df.set_index('time')
+            curr_df = curr_df.astype(convert_dict)
+            curr_df[['avg_price', 'max_price', 'min_price', 'volume']] = curr_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
+        except Exception:
+            df_list.append(contract_id)
+    return df_list
+
+
+def fetch_top_50_collections_database(engine, database_schema):
+    """
+    :param contract_ids: (type: dict) Houses the contract addresses and the collection names
+    :param rarify_api_key: (type: str) Your authentication key from the rarify API
+
+    Takes a dictionary that houses collection addresses in the values
+
+    This function aggregates the data from a selection of NFT collections into a double-layered DataFrame which can be used to run a Monte Carlo simulation
+    Queries all time data 
+    
+    The function iterates through the dictionary of addresses that you supply to it and makes an API call for each address.
+    We then preprocess the data like we did before, formatting and setting the index as the 'time' column,
+    and converting the string numbers to integers using the df.astype() method. We also convert the prices to eth from gwei using a factor. 
+    We then append the most recently constructed dataframe to the list that we instantiated at the top of the function
+    
+    This function returns a concatenation of all the DataFrames that are present in the DataFrame list that we constructed.
+    """
+    df_list = []
+    data = {}
+    convert_dict = {
+                    'avg_price': float,
+                    'max_price': float,
+                    'min_price': float,
+                    'trades': float,
+                    'unique_buyers': float,
+                    'volume': float,
+                    }
+    sql_query = f"""
+        SELECT t.contract_id,
+       c.name,
+       DATE_TRUNC('day', t.timestamp) as year_day_month,
+       SUM(t.volume) as total_volume,
+       SUM(t.num_trades) as total_num_trades,
+       SUM(t.unique_buyers) as total_unique_buyers
+        FROM trade t
+        INNER JOIN collection c ON c.contract_id = t.contract_id
+        INNER JOIN network n ON n.network_id = c.network_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit', 'Uniswap V3 Positions NFT-V1','More Loot',
+                        'NFTfi Promissory Note','dementorstownwtf','ShitBeast','mcgoblintownwtf','LonelyPop','Pablos','For the Culture','Hype Pass')
+        GROUP BY t.contract_id, c.name, DATE_TRUNC('day', t.timestamp)
+        HAVING MAX(avg_price) > 0
+        ORDER BY DATE_TRUNC('day', t.timestamp)  DESC
+    """
+    curr_df = pd.read_sql_query(sql_query, con=engine)
+    # curr_df['timestamp'] = pd.to_datetime(curr_df['timestamp'], infer_datetime_format=True)
+    # curr_df = curr_df.set_index('timestamp')
+    # curr_df = curr_df.astype(convert_dict)
+    # curr_df[['avg_price', 'max_price', 'min_price', 'volume']] = curr_df[['avg_price', 'max_price', 'min_price', 'volume']] * 10**-18
+    # df_list.append(curr_df)
+    # sum_df = pd.concat(df_list, axis=1, keys=contract_ids.keys())
+    return curr_df
 
 def find_valid_contracts(df, contract_ids):
     coll_names = []
@@ -161,9 +242,7 @@ def find_valid_contracts(df, contract_ids):
         coll_names.append(contract_ids[k]['name'])
     for col in df.columns:
         if "avg_price" in col:
-        # if "min_price" in col:
-            df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
-            if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
+            if df[col].pct_change().std() > 1.0:
                 for k in contract_ids:
                     if coll_names[counter] == contract_ids[k]['name']:
                         del copy_contract_ids[k]
@@ -185,11 +264,10 @@ def find_pct_change(df, contract_ids):
         if "avg_price" in col:
         # if "min_price" in col:
             df[f"{coll_names[counter]}_pct_chg"] = df[col].pct_change()
-            if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
-                df = df.drop([f"{coll_names[counter]}_pct_chg"], axis=1)
+            # if df[f"{coll_names[counter]}_pct_chg"].std() > 1.0:
+            #     df = df.drop([f"{coll_names[counter]}_pct_chg"], axis=1)
             counter += 1
     return df
-
 
 def find_beta(df, contract_ids):
     betas_dict = {}
@@ -210,19 +288,6 @@ def find_avg_price(input_df, contract_ids):
             df[f"{coll_names[counter]}_mean_avg_price"] = df[col].mean()
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
-
-def avg_price_df(input_df, contract_ids):
-    df = input_df.copy()
-    coll_names = []
-    counter = 0
-    for k in contract_ids.keys():
-        coll_names.append(k)
-    for col in df.columns:
-        if "avg_price" in col:
-            df[f"{coll_names[counter]}_avg_price"] = df[col]
-            counter += 1
-    return df[df.columns[-(len(contract_ids)):]]
-
 
 def find_max_price(input_df, contract_ids):
     df = input_df.copy()
@@ -270,6 +335,87 @@ def find_std_devs(input_df, contract_ids, statistic='pct_chg'):
     for con in contract_ids.keys():
         df[f"{contract_ids[con]['name']}_std_dev"] = df[f"{contract_ids[con]['name']}_{statistic}"].std()
     return df[df.columns[-(len(contract_ids)):]].mean()
+
+def find_avg_price_df(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = []
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "avg_price" in col:
+            df[f"{coll_names[counter]}"] = df[col]
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_max_price_df(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = [] 
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "max_price" in col:
+            df[f"{coll_names[counter]}"] = df[col]
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_min_price_df(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = [] 
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "min_price" in col:
+            df[f"{coll_names[counter]}"] = df[col]
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_volume_df(input_df, contract_ids):
+    df = input_df.copy()
+    coll_names = [] 
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "vol" in col:
+            df[f"{coll_names[counter]}"] = df[col]
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_pct_change_df(df, contract_ids):
+    """
+    param df: (type: pandas.DataFrame) DataFrame must have average prices series
+    param: contract_ids: (type: dict) A dictionary containing collection names in the keys 
+    Will return a dataframe of percent change columns 
+    """
+    coll_names = []
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        if "avg_price" in col:
+            df[f"{coll_names[counter]}"] = df[col].pct_change()
+            counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+def find_std_dev_df(df, contract_ids):
+    """
+    param df: (type: pandas.DataFrame) DataFrame must have percent_changes series
+    param: contract_ids: (type: dict) A dictionary containing collection names in the keys 
+    Will return a dataframe of percent change columns 
+    """
+    coll_names = []
+    counter = 0
+    for k in contract_ids.keys():
+        coll_names.append(k)
+    for col in df.columns:
+        df[f"{coll_names[counter]}"] = df[col].std()
+        counter += 1
+    return df[df.columns[-(len(contract_ids)):]]
+
+
 
 def fetch_top_collections_data(url, key):
     """
