@@ -12,3 +12,5 @@ transformers
 tensorflow
 pathlib
 seaborn
+datetime
+matplotlib

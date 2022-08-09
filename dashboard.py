@@ -14,6 +14,9 @@ import altair as alt
 from pathlib import Path
 
 # Libraries needed for Streamlit, and integrating plotting with Plost
+import datetime as dt
+import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 import hvplot.pandas
@@ -192,20 +195,20 @@ class TwitterClient(object):
     def plot_std_index(self):
         csv_path = Path('./static_data/std_devs_top_collections_index.csv')
 
-        std_devs = pd.read_csv(csv_path, index_col='time')
+        std_devs = pd.read_csv(csv_path, index_col='time', infer_datetime_format=True, parse_dates=True)
 
         plot = std_devs.hvplot(ylabel="Standard Deviation").opts(xrotation=90)
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
     def plot_betas(self):
-            csv_path = Path('./static_data/betas.csv')
+        csv_path = Path('./static_data/betas.csv')
 
-            beta_values = pd.read_csv(csv_path, index_col="Collections")
+        beta_values = pd.read_csv(csv_path, index_col="Collections")
 
-            plot = beta_values.tail(20).hvplot(kind="bar").opts(xrotation=90)
+        plot = beta_values.tail(20).hvplot(kind="bar").opts(xrotation=90)
 
-            return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
 
     def plot_index(self):
@@ -228,7 +231,7 @@ class TwitterClient(object):
 
         cum_returns = pd.read_csv(csv_path)
 
-        plot = cum_returns.hvplot()
+        plot = cum_returns.hvplot(ylabel="Percent Increase", xlabel="Time")
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
@@ -378,12 +381,12 @@ class TwitterClient(object):
 	    )
 
 	    lines = (
-		    alt.Chart(df, title="Average Price (ETH)")
-		    .mark_line()
-		    .encode(
-			    x=alt.X("yearmonthdate(year_month_day)", axis=alt.Axis(title="Month/Year")),
-			    y=alt.Y("avg_price", axis=alt.Axis(title="ETH")),
-			    color="collection",
+            alt.Chart(df, title="Average Price (ETH)")
+            .mark_line()
+            .encode(
+                x=alt.X("yearmonthdate(year_month_day)", axis=alt.Axis(title="Month/Year")),
+                y=alt.Y("avg_price", axis=alt.Axis(title="ETH")),
+                color="collection",
 		    )
 	    )
 
@@ -668,24 +671,9 @@ def main():
                 Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
                 mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
             """)
-    
-    # Row D (sample donut widget using sample collections data)
-    e1, e2, e3, e4 = st.columns(4)
-    with e1:
-        st.markdown('### Portfolio')
-        plost.donut_chart(
-            data=collections,
-            theta='q2',
-            color='collection')
-        with st.expander("See explanation"):
-            st.write("""
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
-                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
-            """)
 
-    f1, f2 = st.columns(2)
-    with f1:
+    e1, e2 = st.columns(2)
+    with e1:
         st.markdown('# Standard Deviation over time for Collections in the top 75 by Volume')
         api.plot_std_index()
     with st.expander("See explanation"):
@@ -693,8 +681,8 @@ def main():
         Something
         """)
 
-    e1, e2 = st.columns(2)
-    with e1:
+    f1, f2 = st.columns(2)
+    with f1:
         st.markdown('# Standard Deviation for Collections in the top 75 by Volume')
         api.plot_std()
     with st.expander("See explanation"):
@@ -706,11 +694,17 @@ def main():
         by the top collections it is hard to gauge the volatility of the market. We see some collections that have a very low beta and we would just those as having 
         a high preference for collateralization relative to the market. 
         """)
-    with e2:
+    with f2:
         st.markdown('# Betas for collections in the top 75 by Volume')
         api.plot_betas()
 
-    
+    g1, g2 = st.columns(2)
+
+    with g1:
+        st.markdown("# Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
+        api.plot_mc_sim()
+    with g2: 
+        st.markdown("# Portfolio Consists of the following collections: /n *CryptoPunks /n *clonex /n *doodles /n *neotokyo /n *mfers")
     
     
 if __name__ == "__main__":
