@@ -5,7 +5,9 @@ __pycache__/
 .env
 # C extensions
 *.so
-
+.history/
+.vscode/
+.ipynb_checkpoints/
 # Distribution / packaging
 .Python
 build/
