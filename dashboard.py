@@ -44,11 +44,11 @@ class TwitterClient(object):
         meaningcloud_key = os.getenv('MEANINGCLOUD_KEY')
 
         # Setup the database connection (use your own .env to setup the connection)
-        database_connection_string = os.getenv("DATABASE_URL")
+        self.database_connection_string = os.getenv("DATABASE_URL")
         database_schema = os.getenv("DATABASE_SCHEMA")
 
         # create the database engine
-        engine = sqlalchemy.create_engine(database_connection_string)
+        self.engine = sqlalchemy.create_engine(self.database_connection_string)
   
         # attempt authentication
         try:
@@ -135,7 +135,7 @@ class TwitterClient(object):
             # print error (if any)
             print("Error : " + str(e))
 
-    def create_nft_market_vol():
+    def create_nft_market_vol(self):
         # Create the query
         nft_market_index = """
         SELECT t.contract_id,
@@ -154,9 +154,8 @@ class TwitterClient(object):
         HAVING MAX(avg_price) > 0
         ORDER BY DATE_TRUNC('day', t.timestamp)  ASC
         """
-
         # Create a Pandas DataFrame
-        nft_market_index_df = pd.read_sql_query(nft_market_index, con=engine)
+        nft_market_index_df = pd.read_sql_query(nft_market_index, con=self.engine)
 
         # Filter the DataFrame beginning January 2021 - Market activity prior to this date was insignificant when compared to data from early 2021 to present
         nft_market_index_df = nft_market_index_df[nft_market_index_df['year_day_month'] > '2020-12-31']
@@ -274,10 +273,12 @@ def main():
 
     # Row B (example of some metric widgets)
     b1, b2 = st.columns(2)
+
+    data = api.create_nft_market_vol()
     with b1:
         st.markdown('# NFT Market Volume')
         plost.line_chart(
-            data = api.create_nft_market_vol(),
+            data = data,
             x = 'Date',
             y = 'Volume in ETH',
             color = 'green',
@@ -327,3 +328,5 @@ def main():
 if __name__ == "__main__":
     # calling main function
     main()
+
+
