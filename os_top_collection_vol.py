@@ -1,22 +1,12 @@
 # Import the required libraries
 import os
-import requests
-import json
 import pandas as pd
-import hvplot.pandas
 import sqlalchemy
-from sqlalchemy import inspect
 from dotenv import load_dotenv
-import numpy as np
-import holoviews as hv
-hv.extension('bokeh')
 
 # Libraries needed for streamlit and integrating plotting with plost
 import streamlit as st
 import plost
-
-# Support bokeh extension
-hv.extension('bokeh', logo=False)
 
 # Set the streamlit page layout to wide
 st.set_page_config(layout='wide')
@@ -28,10 +18,8 @@ load_dotenv()
 database_connection_string = os.getenv("DATABASE_URL")
 database_schema = os.getenv("DATABASE_SCHEMA")
 
-# create the database engine
+# Create the database engine
 engine = sqlalchemy.create_engine(database_connection_string)
-inspector = inspect(engine)
-inspector.get_table_names()
 
 # Create the query
 os_top_collection_index = """
@@ -59,32 +47,34 @@ os_top_collection_index_df = pd.read_sql_query(os_top_collection_index, con=engi
 os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['name'].str.contains('CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
 
 # Select only the required columns
-os_top_collection_index_df = os_top_collection_index_df[['year_day_month', 'total_volume', 'total_num_trades', 'total_unique_buyers']]
+os_top_collection_index_df = os_top_collection_index_df[['year_day_month', 'total_volume']]
 
 # Rename the columns
-os_top_collection_index_df.columns = ['date', 'volume', 'num_trades', 'unique_buyers']
+os_top_collection_index_df.columns = ['Date', 'Volume in ETH']
 
 # Only select data from January 2021 to present. Prior to this date the NFT market activity is insignificant for this analysis
-os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['date'] > '2020-12-31']
+os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['Date'] > '2020-12-31']
 
 # Group the data by date and sum the volume
-os_top_collection_index_volume = os_top_collection_index_df.groupby('date')['volume'].sum()
+os_top_collection_index_volume = os_top_collection_index_df.groupby('Date')['Volume in ETH'].sum()
 
-# Visualize Open Sea's Top Ten Collections Volume Traded Over Time
-os_top_collection_index_visual = os_top_collection_index_volume.hvplot(
-    height=700, 
-    width=1000, 
-    yformatter='%.0f', 
-    ylabel = 'Volume in ETH', 
-    xlabel = 'Date',
-    color = 'green',
-    label = 'Volume in ETH'
-)
+# Convert the series to a Pandas DataFrame for Streamlit Integration
+os_top_collection_index_volume = os_top_collection_index_volume.to_frame()
+
+# Reset the index for Streamlit Integration
+os_top_collection_index_volume.reset_index(inplace=True)
 
 # Row D
-d1, d2, d3, d4 = st.columns(4)
+D1, d2 = st.columns(2)
 with d2:
     st.markdown("### Open Sea's Top Ten Collections Volume Traded From January 2021 to Present")
-    st.bokeh_chart(hv.render(os_top_collection_index_visual, backend='bokeh'))
+    plost.line_chart(
+        data = os_top_collection_index_volume,
+        x = 'Date',
+        y = 'Volume in ETH',
+        color = 'green',
+        width = 500,
+        height = 300,
+    )
     with st.expander("See explanation"):
         st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear from the data that the top ten collections continue to trade at higher highs every time there is an interest spike in the NFT market.""") 
