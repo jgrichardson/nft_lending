@@ -10,8 +10,10 @@ import requests
 import time # For controlling rate limits to APIs
 from PIL import Image # Support for images
 import sqlalchemy
+from pathlib import Path
 
 # Libraries needed for Streamlit, and integrating plotting with Plost
+import seaborn as sns
 import streamlit as st
 import hvplot.pandas
 import holoviews as hv
@@ -176,6 +178,59 @@ class TwitterClient(object):
         nft_market_vol_df.reset_index(inplace=True)
 
         return nft_market_vol_df
+
+    def plot_std(self):
+        csv_path = Path('./static_data/standard_deviations.csv')
+
+        std_devs = pd.read_csv(csv_path, index_col="Collections")
+
+        plot = std_devs.hvplot(kind='bar', color='red').opts(xrotation=90)
+        
+        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+
+    def plot_std_index(self):
+        csv_path = Path('./static_data/std_devs_top_collections_index.csv')
+
+        std_devs = pd.read_csv(csv_path, index_col='time')
+
+        plot = std_devs.hvplot(ylabel="Standard Deviation").opts(xrotation=90)
+        
+        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+
+    def plot_betas(self):
+            csv_path = Path('./static_data/betas.csv')
+
+            beta_values = pd.read_csv(csv_path, index_col="Collections")
+
+            plot = beta_values.tail(20).hvplot(kind="bar").opts(xrotation=90)
+
+            return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+
+
+    def plot_index(self):
+        """
+        Returns a sns heatmap object.
+        Needs to be compiled into a streamlit object.
+
+        """
+        csv_path = Path('./static_data/top_collections_data.csv')
+        
+        index = pd.read_csv(csv_path)
+        keys = ['avg_price', 'min_price', 'max_price', 'volume', 'pct_chg', 'std_dev']
+
+        index_correlation = index[keys].corr()
+
+        return sns.heatmap(index_correlation)
+
+    def plot_mc_sim(self):
+        csv_path = Path('./static_data/mc_cum_return.csv')
+
+        cum_returns = pd.read_csv(csv_path)
+
+        plot = cum_returns.hvplot()
+        
+        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+
     
 def main():
     # Create object of TwitterClient Class
@@ -324,6 +379,35 @@ def main():
                 Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
                 mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
             """)
+
+    f1, f2 = st.columns(2)
+    with f1:
+        st.markdown('# Standard Deviation over time for Collections in the top 75 by Volume')
+        api.plot_std_index()
+    with st.expander("See explanation"):
+        st.write("""
+        Something
+        """)
+
+    e1, e2 = st.columns(2)
+    with e1:
+        st.markdown('# Standard Deviation for Collections in the top 75 by Volume')
+        api.plot_std()
+    with st.expander("See explanation"):
+        st.write("""
+        The standard deviation and, therefore, the volatility of the collections (by percent change) increases reading from left to right.
+        We would evaluate collections on the left as being better candidates for collateralization and would be eligible to receive loans at a higher 
+        loan-to-value ratio. This is because we would evaluate a lower risk of liquidation for these NFTs. 
+        For the beta values, we find little use for this analysis because the deviation of the market as a whole is so vast and can be influenced so much 
+        by the top collections it is hard to gauge the volatility of the market. We see some collections that have a very low beta and we would just those as having 
+        a high preference for collateralization relative to the market. 
+        """)
+    with e2:
+        st.markdown('# Betas for collections in the top 75 by Volume')
+        api.plot_betas()
+
+    
+    
     
 if __name__ == "__main__":
     # calling main function

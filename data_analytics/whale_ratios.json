@@ -1,15 +1,23 @@
 {
-    "34d85c9cdeb23fa97cb08333b511ac86e1c4e258": {
-        "name": "Otherdeed",
-        "whale_ratio": 2.8633604398121637
+    "81ae0be3a8044772d04f32398bac1e1b4b215aa8": {
+        "name": "Dreadfulz",
+        "whale_ratio": 6.63000852514919
+    },
+    "1dfe7ca09e99d10835bf73044a23b73fc20623df": {
+        "name": "More Loot",
+        "whale_ratio": 5.496184145741014
+    },
+    "4e1f41613c9084fdb9e34e11fae9412427480e56": {
+        "name": "Terraforms",
+        "whale_ratio": 4.807860262008734
     },
     "bc4ca0eda7647a8ab7c2061c2e118a18a936f13d": {
         "name": "BoredApeYachtClub",
-        "whale_ratio": 1.5532774153463809
+        "whale_ratio": 1.5511090429657204
     },
-    "ed5af388653567af2f388e6224dc7c4b3241c544": {
-        "name": "Azuki",
-        "whale_ratio": 1.9747235387045814
+    "34d85c9cdeb23fa97cb08333b511ac86e1c4e258": {
+        "name": "Otherdeed",
+        "whale_ratio": 2.865083230667851
     },
     "60e4d786628fea6478f785a6d7e704777c86a7c6": {
         "name": "MutantApeYachtClub",
@@ -17,158 +25,234 @@
     },
     "bce3781ae7ca1a5e050bd9c4c77369867ebc307e": {
         "name": "goblintown",
-        "whale_ratio": 2.2043650793650795
+        "whale_ratio": 2.2116788321167884
     },
-    "160c404b2b49cbc3240055ceaee026df1e8497a0": {
-        "name": "projectPXN",
-        "whale_ratio": 1.6157699143641946
+    "ed5af388653567af2f388e6224dc7c4b3241c544": {
+        "name": "Azuki",
+        "whale_ratio": 1.9704433497536946
+    },
+    "ff36ca1396d2a9016869274f1017d6c2139f495e": {
+        "name": "dementorstownwtf",
+        "whale_ratio": 4.565753424657534
+    },
+    "a5d37c0364b9e6d96ee37e03964e7ad2b33a93f4": {
+        "name": "CATGIRL ACADEMIA",
+        "whale_ratio": 5.992261392949269
     },
     "49cf6f5d44e70224e2e23fdcdd2c053f30ada28b": {
         "name": "CloneX",
-        "whale_ratio": 2.0615614016402173
+        "whale_ratio": 2.0626598465473145
     },
     "23581767a106ae21c074b2276d25e5c3e136a68b": {
         "name": "Moonbirds",
-        "whale_ratio": 1.505797319680771
+        "whale_ratio": 1.5098897780462026
+    },
+    "57f1887a8bf19b14fc0df6fd9b2acc9af147ea85": {
+        "name": "ENS: Ethereum Name Service",
+        "whale_ratio": 3.926409476523084
     },
     "8a90cab2b38dba80c64b7734e58ee1db38b8992e": {
         "name": "Doodles",
-        "whale_ratio": 1.8982536066818527
+        "whale_ratio": 1.8960940462646947
     },
     "a7d8d9ef8d8ce8992df33d8b8cf4aebabd5bd270": {
         "name": "Art Blocks",
-        "whale_ratio": 5.396657413832986
+        "whale_ratio": 5.399786287760643
+    },
+    "160c404b2b49cbc3240055ceaee026df1e8497a0": {
+        "name": "projectPXN",
+        "whale_ratio": 1.6196954972465176
+    },
+    "495f947276749ce646f68ac8c248420045cb7b5e": {
+        "name": "Wappen Animals",
+        "whale_ratio": 3.0555640801470196
+    },
+    "5660e206496808f7b5cdb8c56a696a96ae5e9b23": {
+        "name": "NFTfi Promissory Note",
+        "whale_ratio": 43.88205128205128
+    },
+    "acd6ab55f6fba36293a9a920ffcb2f0f3d34967a": {
+        "name": "Bound NFT DOODLE",
+        "whale_ratio": 3.5
+    },
+    "80336ad7a747236ef41f47ed2c7641828a480baa": {
+        "name": "Chimpers",
+        "whale_ratio": 5.382751937984496
+    },
+    "1792a96e5668ad7c167ab804a100ce42395ce54d": {
+        "name": "Moonbirds Oddities",
+        "whale_ratio": 1.613163413453783
     },
     "659a4bdaaacc62d2bd9cb18225d9c89b5b697a5a": {
         "name": "We Are All Going to Die",
-        "whale_ratio": 2.7973143096936632
+        "whale_ratio": 2.806736842105263
+    },
+    "306b1ea3ecdf94ab739f1910bbda052ed4a9f949": {
+        "name": "Beanz",
+        "whale_ratio": 2.7909904868494686
+    },
+    "466cfcd0525189b573e794f554b8a751279213ac": {
+        "name": "Dooplicator",
+        "whale_ratio": 1.6870613640453482
     },
     "880e37b98f7c058b3563970f256614ff4a580637": {
         "name": "Opium Network Position Token",
-        "whale_ratio": 12.485714285714286
+        "whale_ratio": 12.222222222222221
     },
     "7eaa96d48380802a75ed6d74b91e2b30c3d474c1": {
         "name": "CPG Pop",
         "whale_ratio": 1.2916279069767442
     },
-    "d8a5d498ab43ed060cb6629b97a19e3e4276dd9f": {
-        "name": "Genesis",
-        "whale_ratio": 2.286236854138089
-    },
     "248139afb8d3a2e16154fbe4fb528a3a214fd8e7": {
         "name": "Boki",
-        "whale_ratio": 2.203740436384245
+        "whale_ratio": 2.200622524052066
     },
-    "1792a96e5668ad7c167ab804a100ce42395ce54d": {
-        "name": "Moonbirds Oddities",
-        "whale_ratio": 1.6017940092904053
+    "d8a5d498ab43ed060cb6629b97a19e3e4276dd9f": {
+        "name": "Genesis",
+        "whale_ratio": 2.2920009168003666
+    },
+    "1485297e942ce64e0870ece60179dfda34b4c625": {
+        "name": "Moonrunners",
+        "whale_ratio": 2.7107617240444566
+    },
+    "39ee2c7b3cb80254225884ca001f57118c8f21b6": {
+        "name": "Potatoz",
+        "whale_ratio": 2.0294296732291457
+    },
+    "ba30e5f9bb24caa003e9f2f0497ad287fdf95623": {
+        "name": "BoredApeKennelClub",
+        "whale_ratio": 1.7061122956645345
+    },
+    "9c8ff314c9bc7f6e59a9d9225fb22946427edc03": {
+        "name": "Nouns",
+        "whale_ratio": 1.6974789915966386
+    },
+    "7d8820fa92eb1584636f4f5b8515b5476b75171a": {
+        "name": "Murakami.Flowers",
+        "whale_ratio": 1.6799860408305707
+    },
+    "f220db48f0d3ca8a9833e0353e7497dbceae7ac6": {
+        "name": "Karafuru Gachapon",
+        "whale_ratio": 5.278249066847642
+    },
+    "19b86299c21505cdf59ce63740b240a9c822b5e4": {
+        "name": "DEGEN TOONZ",
+        "whale_ratio": 2.3334208453662377
     },
     "bc578ecca2115dac0c93c08674edc0c7d01fe09c": {
         "name": "InvisibleSociety",
         "whale_ratio": 8.089678510998308
     },
-    "466cfcd0525189b573e794f554b8a751279213ac": {
-        "name": "Dooplicator",
-        "whale_ratio": 1.6861510791366907
+    "5cc5b05a8a13e3fbdb0bb9fccd98d38e50f90c38": {
+        "name": "Sandbox's LANDs",
+        "whale_ratio": 5.747396501308162
     },
-    "f220db48f0d3ca8a9833e0353e7497dbceae7ac6": {
-        "name": "Karafuru Gachapon",
-        "whale_ratio": 5.25151924375422
+    "e21ebcd28d37a67757b9bc7b290f4c4928a430b1": {
+        "name": "The Saudis",
+        "whale_ratio": 2.2738436348751536
     },
-    "ba30e5f9bb24caa003e9f2f0497ad287fdf95623": {
-        "name": "BoredApeKennelClub",
-        "whale_ratio": 1.7049005681818181
+    "76b3af5f0f9b89ca5a4f9fe6c58421dbe567062d": {
+        "name": "NotOkayBears",
+        "whale_ratio": 3.114294612270321
     },
-    "6728d91abacdbac2f326baa384513a523c21b80a": {
-        "name": "ShitBeast",
-        "whale_ratio": 3.4376074252320383
+    "c5b52253f5225835cc81c52cdb3d6a22bc3b0c93": {
+        "name": "mcgoblintownwtf",
+        "whale_ratio": 3.387951807228916
     },
-    "9c8ff314c9bc7f6e59a9d9225fb22946427edc03": {
-        "name": "Nouns",
-        "whale_ratio": 1.694915254237288
+    "b852c6b5892256c264cc2c888ea462189154d8d7": {
+        "name": "Rektguy",
+        "whale_ratio": 2.0018169429934134
     },
-    "19b86299c21505cdf59ce63740b240a9c822b5e4": {
-        "name": "DEGEN TOONZ",
-        "whale_ratio": 2.341412012644889
+    "c7c962e44316e0c052448a0fdd1da15ea24fa9a9": {
+        "name": "Gossamer Seed",
+        "whale_ratio": 2.6295030239284776
+    },
+    "670d4dd2e6badfbbd372d0d37e06cd2852754a04": {
+        "name": "Super Cool World",
+        "whale_ratio": 3.518005540166205
+    },
+    "0a36f2178c0db2c85471c45334a1dd17d130fd42": {
+        "name": "GODA Mint Pass",
+        "whale_ratio": 1.3793103448275863
+    },
+    "e5e771bc685c5a89710131919c616c361ff001c6": {
+        "name": "WizNFT",
+        "whale_ratio": 9.319664492078285
+    },
+    "79fcdef22feed20eddacbb2587640e45491b757f": {
+        "name": "mfer",
+        "whale_ratio": 1.7761432116270826
     },
     "22c36bfdcef207f9c0cc941936eff94d4246d14a": {
         "name": "Bored Ape Chemistry Club",
         "whale_ratio": 0.009933774834437087
     },
-    "5cc5b05a8a13e3fbdb0bb9fccd98d38e50f90c38": {
-        "name": "Sandbox's LANDs",
-        "whale_ratio": 5.7509368102253475
+    "33c6eec1723b12c46732f7ab41398de45641fa42": {
+        "name": "[ Ledger ] Market Pass - Genesis Edition",
+        "whale_ratio": 1.292156609381057
+    },
+    "5af0d9827e0c53e4799bb226655a1de152a425a5": {
+        "name": "Milady",
+        "whale_ratio": 3.3783783783783785
     },
     "64b6b4142d4d78e49d53430c1d3939f2317f9085": {
         "name": "AIMoonbirds",
-        "whale_ratio": 2.745744096650192
+        "whale_ratio": 2.7517886626307098
     },
     "1a92f7381b9f03921564a437210bb9396471050c": {
         "name": "Cool Cats",
         "whale_ratio": 1.7625886524822696
     },
+    "d2a077ec359d94e0a0b7e84435eacb40a67a817c": {
+        "name": "Admit One",
+        "whale_ratio": 1.1261261261261262
+    },
     "c1ad47aeb274157e24a5f01b5857830aef962843": {
         "name": "Akumu Dragonz",
-        "whale_ratio": 2.4746349913387777
+        "whale_ratio": 2.4764735017335315
     },
-    "809d8f2b12454fc07408d2479cf6dc701ecd5a9f": {
-        "name": "BBRC OFFICIAL - IVY BOYS",
-        "whale_ratio": 1.9283411852219192
+    "2ee6af0dff3a1ce3f7e3414c52c48fd50d73691e": {
+        "name": "Bored Ape Yacht Club",
+        "whale_ratio": 2.84955223880597
     },
     "d46c8648f2ac4ce1a1aace620460fbd24f640853": {
         "name": "Bound NFT AZUKI",
-        "whale_ratio": 5.616438356164384
-    },
-    "79fcdef22feed20eddacbb2587640e45491b757f": {
-        "name": "mfer",
-        "whale_ratio": 1.7758284600389864
-    },
-    "5af0d9827e0c53e4799bb226655a1de152a425a5": {
-        "name": "Milady",
-        "whale_ratio": 3.365870077415012
-    },
-    "b4d06d46a8285f4ec79fd294f78a881799d8ced9": {
-        "name": "3Landers",
-        "whale_ratio": 1.656726308813784
-    },
-    "c5b52253f5225835cc81c52cdb3d6a22bc3b0c93": {
-        "name": "mcgoblintownwtf",
-        "whale_ratio": 3.280093494351383
-    },
-    "9378368ba6b85c1fba5b131b530f5f5bedf21a18": {
-        "name": "VeeFriends Series 2",
-        "whale_ratio": 2.4387433612386356
+        "whale_ratio": 5.635135135135135
     },
     "08d7c0242953446436f34b4c78fe9da38c73668d": {
         "name": "PROOF Collective",
-        "whale_ratio": 1.0626992561105206
-    },
-    "9690b63eb85467be5267a3603f770589ab12dc95": {
-        "name": "ForgottenRunesWarriorsGuild",
-        "whale_ratio": 4.295302013422819
-    },
-    "a9a6a3626993d487d2dbda3173cf58ca1a9d9e9f": {
-        "name": "Unstoppable Domains",
-        "whale_ratio": 4.365217849474641
-    },
-    "497b54355043e7a0d06bf5e3c20cecf859fcc0a8": {
-        "name": "VIVID",
-        "whale_ratio": 2.3594372179453145
+        "whale_ratio": 1.0649627263045793
     },
     "b8bcafefebdd846dc1f262ca4c5546d7d27092a2": {
         "name": "Bound NFT CloneX",
-        "whale_ratio": 4.216867469879518
+        "whale_ratio": 4.129411764705883
     },
-    "5bd815fd6c096bab38b4c6553cfce3585194dff9": {
-        "name": "The Art of Seasons",
-        "whale_ratio": 2.3947716743878225
+    "0ee80069c9b4993882fe0b3fc256260eff385982": {
+        "name": "LonelyPop",
+        "whale_ratio": 2.268602540834846
     },
-    "7a376c1f8edf7ba7eb94a7438a8313a17d830ff8": {
-        "name": "ProjectKevins",
-        "whale_ratio": 7.853403141361256
+    "9378368ba6b85c1fba5b131b530f5f5bedf21a18": {
+        "name": "VeeFriends Series 2",
+        "whale_ratio": 2.438549120201611
     },
-    "59468516a8259058bad1ca5f8f4bff190d30e066": {
-        "name": "Invisible Friends",
-        "whale_ratio": 1.2559658377292138
+    "684e4ed51d350b4d76a3a07864df572d24e6dc4c": {
+        "name": "Isekai Meta",
+        "whale_ratio": 2.2706299911268855
+    },
+    "059edd72cd353df5106d2b9cc5ab83a52287ac3a": {
+        "name": "Art Blocks",
+        "whale_ratio": 3.713342599027102
+    },
+    "9690b63eb85467be5267a3603f770589ab12dc95": {
+        "name": "ForgottenRunesWarriorsGuild",
+        "whale_ratio": 4.2976094547408
+    },
+    "e6d48bf4ee912235398b96e16db6f310c21e82cb": {
+        "name": "God Hates NFTees",
+        "whale_ratio": 2.1646551724137932
+    },
+    "a9a6a3626993d487d2dbda3173cf58ca1a9d9e9f": {
+        "name": "Unstoppable Domains",
+        "whale_ratio": 4.3693213660245185
     }
 }

@@ -10,3 +10,5 @@ psycopg2
 numpy
 transformers
 tensorflow
+pathlib
+seaborn

@@ -242,7 +242,7 @@ def find_valid_contracts(df, contract_ids):
         coll_names.append(contract_ids[k]['name'])
     for col in df.columns:
         if "avg_price" in col:
-            if df[col].pct_change().std() > 1.0:
+            if df[col].std() > 1.0:
                 for k in contract_ids:
                     if coll_names[counter] == contract_ids[k]['name']:
                         del copy_contract_ids[k]
@@ -395,7 +395,7 @@ def find_pct_change_df(df, contract_ids):
     for k in contract_ids.keys():
         coll_names.append(k)
     for col in df.columns:
-        if "avg_price" in col:
+        if "mean_avg_price" in col:
             df[f"{coll_names[counter]}"] = df[col].pct_change()
             counter += 1
     return df[df.columns[-(len(contract_ids)):]]
