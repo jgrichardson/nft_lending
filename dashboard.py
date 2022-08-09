@@ -176,6 +176,143 @@ class TwitterClient(object):
         nft_market_vol_df.reset_index(inplace=True)
 
         return nft_market_vol_df
+
+    def create_os_collection_index(self):
+        # Create the query
+        os_top_collection_index = """
+        SELECT t.contract_id,
+            c.name,
+            DATE_TRUNC('day', t.timestamp) as year_day_month,
+            SUM(t.volume) as total_volume,
+            SUM(t.num_trades) as total_num_trades,
+            SUM(t.unique_buyers) as total_unique_buyers
+        FROM trade t
+        INNER JOIN collection c ON c.contract_id = t.contract_id
+        INNER JOIN network n ON n.network_id = c.network_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit', 'Uniswap V3 Positions NFT-V1','More Loot',
+                        'NFTfi Promissory Note','dementorstownwtf','ShitBeast','mcgoblintownwtf','LonelyPop','Pablos','For the Culture','Hype Pass', 'Moonbirds Oddities', 'AIMoonbirds', 'Bound NFT CloneX')
+        GROUP BY t.contract_id, c.name, DATE_TRUNC('day', t.timestamp)
+        HAVING MAX(avg_price) > 0
+        ORDER BY DATE_TRUNC('day', t.timestamp)  ASC
+        """
+
+        # Convert the database to a Pandas DataFrame
+        os_top_collection_index_df = pd.read_sql_query(os_top_collection_index, con=self.engine)
+
+        # filter the query for only the top ten collections listed on OpenSea"
+        os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['name'].str.contains('CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+
+        # Select only the required columns
+        os_top_collection_index_df = os_top_collection_index_df[['year_day_month', 'total_volume']]
+
+        # Rename the columns
+        os_top_collection_index_df.columns = ['Date', 'Volume in ETH']
+
+        # Only select data from January 2021 to present. Prior to this date the NFT market activity is insignificant for this analysis
+        os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['Date'] > '2020-12-31']
+
+        # Group the data by date and sum the volume
+        os_top_collection_index_vol_df = os_top_collection_index_df.groupby('Date')['Volume in ETH'].sum()
+
+        # Convert the series to a Pandas DataFrame for Streamlit Integration
+        os_top_collection_index_vol_df = os_top_collection_index_vol_df.to_frame()
+
+        # Reset the index for Streamlit Integration
+        os_top_collection_index_vol_df.reset_index(inplace=True)
+
+        return os_top_collection_index_vol_df
+
+    def create_top_collections_one(self):
+        # Create the query
+        os_top_collection_index = """
+        SELECT c.contract_id,
+            c.name,
+            c.description,
+            MAX(avg_price) as highest_avg_price_ever_reached,
+            MAX(min_price) as highest_minimum_price_ever_reached,
+            MAX(max_price) as highest_max_price_ever_reached,
+            SUM(t.volume) as total_volume
+        FROM collection c
+        INNER JOIN trade t ON t.contract_id = c.contract_id
+        INNER JOIN network n ON n.network_id = c.network_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit')
+        GROUP BY c.contract_id, c.name
+        HAVING MAX(avg_price) > 0
+        ORDER BY SUM(t.volume) DESC
+        """
+
+        # Convert the query to a Pandas DataFrame
+        os_top_collection_index_df = pd.read_sql_query(os_top_collection_index, con=self.engine)
+
+        # filter the query for only the top ten collections listed on OpenSea
+        os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['name'].str.contains(
+            'CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+
+        # Drop redundant collections
+        os_top_collection_index_df = os_top_collection_index_df.drop(index=52)
+        os_top_collection_index_df = os_top_collection_index_df.drop(index=62)
+        os_top_collection_index_df = os_top_collection_index_df.drop(index=72)
+
+        # Select only the required columns
+        os_top_collection_index_df = os_top_collection_index_df[['name', 'total_volume']]
+
+        # Rename the columns
+        os_top_collection_index_df.columns = ['Collection Name', 'Volume in ETH']
+
+        # Sort the DataFrame by Collection Name
+        os_top_collection_index_df = os_top_collection_index_df.sort_values('Collection Name')
+
+        return os_top_collection_index_df
+
+    def create_top_collections_two(self):
+        # Create the 2nd query
+        os_top_collection_index_2 = """
+        SELECT t.contract_id,
+            c.name,
+            DATE_TRUNC('day', t.timestamp) as year_day_month,
+            SUM(t.volume) as total_volume,
+            SUM(t.num_trades) as total_num_trades,
+            SUM(t.unique_buyers) as total_unique_buyers
+        FROM trade t
+        INNER JOIN collection c ON c.contract_id = t.contract_id
+        INNER JOIN network n ON n.network_id = c.network_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit', 'Uniswap V3 Positions NFT-V1','More Loot',
+                        'NFTfi Promissory Note','dementorstownwtf','ShitBeast','mcgoblintownwtf','LonelyPop','Pablos','For the Culture','Hype Pass', 'Moonbirds Oddities', 'AIMoonbirds', 'Bound NFT CloneX')
+        GROUP BY t.contract_id, c.name, DATE_TRUNC('day', t.timestamp)
+        HAVING MAX(avg_price) > 0
+        ORDER BY DATE_TRUNC('day', t.timestamp)  ASC
+        """
+
+        # Convert the query to a Pandas DataFrame
+        os_top_collection_index_2 = pd.read_sql_query(os_top_collection_index_2, con=self.engine)
+
+        # filter the query for only the top ten collections listed on OpenSea"
+        os_top_collection_index_2 = os_top_collection_index_2[os_top_collection_index_2['name'].str.contains('CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+
+        # Select only the required columns
+        os_top_collection_index_2 = os_top_collection_index_2[['name', 'total_num_trades']]
+
+        # Rename the columns
+        os_top_collection_index_2.columns = ['Collection Name', 'Number of Trades']
+
+        # Group the data by Collection Name and sum the number of trades
+        os_top_collection_index_num_trades_df = os_top_collection_index_2.groupby('Collection Name')['Number of Trades'].sum()
+
+        # Sort the data in alphabetical order to match the other chart
+        os_top_collection_index_num_trades_df = os_top_collection_index_num_trades_df.sort_index()
+
+        # Convert the series to a Pandas DataFrame for Streamlit Integration
+        os_top_collection_index_num_trades_df = os_top_collection_index_num_trades_df.to_frame()
+
+        # Reset the index for Streamlit Integration
+        os_top_collection_index_num_trades_df.reset_index(inplace=True)
+
+        return os_top_collection_index_num_trades_df
+
+        
     
 def main():
     # Create object of TwitterClient Class
@@ -261,7 +398,7 @@ def main():
     # Render the grid and the contents for the Streamlit dashboard
     # See https://docs.streamlit.io/library/api-reference/layout
     
-    # Row A (example of a title row)
+        # Row A (example of a title row)
     a1, a2 = st.columns((2,8))
     with a1:
         st.image('images/sample_logo.png')
@@ -271,27 +408,77 @@ def main():
     # Insert a spacer
     st.markdown('#')
 
-    # Row B (example of some metric widgets)
+    st.header('NFT Market Growth - January 2021 to Present')
+
+    # Row B (General NFT Market Overview)
     b1, b2 = st.columns(2)
 
     data = api.create_nft_market_vol()
     with b1:
-        st.markdown('# NFT Market Volume')
         plost.line_chart(
             data = data,
             x = 'Date',
             y = 'Volume in ETH',
+            title = 'NFT Market Volume',
             color = 'green',
             width = 500,
             height = 300,
         )        
-    with st.expander("See explanation"):
-        st.write("""This chart shows the total volume (in ETH) of all NFT collections traded from January 2021 to present day. You can see from January 1st, 2021 to January 31st, 2022 the NFT market grew in volume by 128,792%. The total volume of the NFT Market at its peak traded over $820 million on a single day. A line of best fit would clearly demonstrate a growing market as time progresses.""")
+        with st.expander("See analysis"):
+            st.write("""This chart shows the total volume (in ETH) of all NFT collections traded from January 2021 to present day. You can see from January 1st, 2021 to January 31st, 2022 the NFT market grew in volume by 128,792%. The total volume of the NFT Market at its peak traded over $820 million on a single day. A line of best fit would clearly demonstrate a growing market as time progresses.""")
+
+    data = api.create_os_collection_index()
+    with b2:
+        plost.line_chart(
+            data = data,
+            x = 'Date',
+            y = 'Volume in ETH',
+            title = "Open Sea's Top Ten Collections Volume Traded",
+            color = 'blue',
+            width = 500,
+            height = 300,
+        )
+        with st.expander("See analysis"):
+            st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear from the data that the top ten collections continue to trade at higher highs every time there is an interest spike in the NFT market.""") 
+    
+    # Insert a spacer
+    st.markdown('#')
+
+    st.header('Open Sea Top Ten Collections - All Time')
+
+    # Row C (OS Top Collection Analysis)
+    c1, c2 = st.columns(2)
+    
+    data = api.create_top_collections_one()
+    with c1:
+        plost.bar_chart(
+            data = data,
+            bar = 'Collection Name',
+            value = 'Volume in ETH',
+            title = "Volume in ETH",
+            color = 'blue',
+            width = 500,
+            height = 500,
+    )        
+    with st.expander("See analysis"):
+        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating how concentrated and young the NFT market really is.""")
+    
+    data = api.create_top_collections_two()
+    with c2:
+        plost.bar_chart(
+        data = data,
+        bar = 'Collection Name',
+        value = 'Number of Trades',
+        title = 'Number of Trades',
+        color = 'green',
+        width = 500,
+        height = 500,
+    )
         
     # Row C (my sentiment plot, other plots from the team)
     # Adds an "expander" widget below each plot so we can include narrative/story
-    c1, c2 = st.columns(2)
-    with c1:
+    d1, d2 = st.columns(2)
+    with d1:
         st.markdown('### Sentiment')
         st.bokeh_chart(hv.render(my_plot, backend='bokeh'))
         with st.expander("See explanation"):
@@ -300,7 +487,7 @@ def main():
                 Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
                 mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
             """)
-    with c2:
+    with d2:
         st.markdown('### Top Collections')
         st.table(df)
         with st.expander("See explanation"):
@@ -311,8 +498,8 @@ def main():
             """)
     
     # Row D (sample donut widget using sample collections data)
-    d1, d2, d3, d4 = st.columns(4)
-    with d1:
+    e1, e2, e3, e4 = st.columns(4)
+    with e1:
         st.markdown('### Portfolio')
         plost.donut_chart(
             data=collections,
