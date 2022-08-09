@@ -58,28 +58,144 @@ nft_market_index_df = pd.read_sql_query(nft_market_index, con=engine)
 # Filter the DataFrame beginning January 2021 - Market activity prior to this date was insignificant when compared to data from early 2021 to present
 nft_market_index_df = nft_market_index_df[nft_market_index_df['year_day_month'] > '2020-12-31']
 
-# create two separate Pandas series for number of trades and volume traded in ETH
-nft_market_vol = nft_market_index_df.groupby('year_day_month')['total_volume'].sum()
+# Rename the columns
+nft_market_index_df.columns = ['contract_id', 'name', 'Date', 'Volume in ETH', 'Number of Trades', 'Unique Buyers']
+
+# create a Pandas series for volume traded in ETH
+nft_market_vol = nft_market_index_df.groupby('Date')['Volume in ETH'].sum()
 
 # Ensure series is sorted by date
 nft_market_vol = nft_market_vol.sort_index()
 
-# Create the Volume in ETH Visual
-vol_eth_visual = nft_market_vol.hvplot(
+# Convert series to DataFrame for integration with Plost
+nft_market_vol = nft_market_vol.to_frame()
+
+# Reset the Index for integration with Plost
+nft_market_vol.reset_index(inplace=True)
+
+# Convert Datatype to float for Volume column
+convert_dict = {'Volume in ETH': float}
+
+nft_market_vol = nft_market_vol.astype(convert_dict)
+
+# Row D
+d1, d2, d3 = st.columns(3)
+with d1:
+    st.markdown('### NFT Market Volume')
+    plost.line_chart(
+        data = nft_market_vol,
+        x = 'Date',
+        y = 'Volume in ETH',
+        color = 'green',
+        width = 500,
+        height = 300,
+    )        
+    with st.expander("See explanation"):
+        st.write("""This chart shows the total volume (in ETH) of all NFT collections traded from January 2021 to present day. You can see from January 1st, 2021 to January 31st, 2022 the NFT market grew in volume by 128,792%. The total volume of the NFT Market at its peak traded over $820 million on a single day. A line of best fit would clearly demonstrate a growing market as time progresses.""")
+
+# Create the query
+os_top_collection_index = """
+SELECT c.contract_id,
+       c.name,
+       c.description,
+       MAX(avg_price) as highest_avg_price_ever_reached,
+       MAX(min_price) as highest_minimum_price_ever_reached,
+       MAX(max_price) as highest_max_price_ever_reached,
+       SUM(t.volume) as total_volume
+FROM collection c
+INNER JOIN trade t ON t.contract_id = c.contract_id
+INNER JOIN network n ON n.network_id = c.network_id
+WHERE n.network_id = 'ethereum' 
+AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit')
+GROUP BY c.contract_id, c.name
+HAVING MAX(avg_price) > 0
+ORDER BY SUM(t.volume) DESC
+"""
+
+# Convert the query to a Pandas DataFrame
+os_top_collection_index_df = pd.read_sql_query(os_top_collection_index, con=engine)
+
+# filter the query for only the top ten collections listed on OpenSea"
+os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['name'].str.contains(
+    'CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+
+# Drop redundant collections
+os_top_collection_index_df = os_top_collection_index_df.drop(index=52)
+os_top_collection_index_df = os_top_collection_index_df.drop(index=62)
+os_top_collection_index_df = os_top_collection_index_df.drop(index=72)
+
+# Sort the DataFrame by Collection Name
+os_top_collection_index_df = os_top_collection_index_df.sort_values('name')
+
+# Visualize OpenSea's top collections by all time volume
+side_1 = os_top_collection_index_df.hvplot.bar(
+    x='name', 
+    y='total_volume', 
     rot=90, 
     height=700, 
     width=1000, 
     ylabel = "Volume in ETH", 
     xlabel = "Collection Name", 
-    yformatter='%.2f',
-    color = 'green',
+    title = "OpenSea Top Ten Collections by Volume All Time",
+    yformatter='%.2f'
 )
+
+# Create the 2nd query
+os_top_collection_index_2 = """
+SELECT t.contract_id,
+       c.name,
+       DATE_TRUNC('day', t.timestamp) as year_day_month,
+       SUM(t.volume) as total_volume,
+       SUM(t.num_trades) as total_num_trades,
+       SUM(t.unique_buyers) as total_unique_buyers
+FROM trade t
+INNER JOIN collection c ON c.contract_id = t.contract_id
+INNER JOIN network n ON n.network_id = c.network_id
+WHERE n.network_id = 'ethereum' 
+AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit', 'Uniswap V3 Positions NFT-V1','More Loot',
+                  'NFTfi Promissory Note','dementorstownwtf','ShitBeast','mcgoblintownwtf','LonelyPop','Pablos','For the Culture','Hype Pass', 'Moonbirds Oddities', 'AIMoonbirds', 'Bound NFT CloneX')
+GROUP BY t.contract_id, c.name, DATE_TRUNC('day', t.timestamp)
+HAVING MAX(avg_price) > 0
+ORDER BY DATE_TRUNC('day', t.timestamp)  ASC
+"""
+
+# Convert the query to a Pandas DataFrame
+os_top_collection_index_2 = pd.read_sql_query(os_top_collection_index_2, con=engine)
+
+# filter the query for only the top ten collections listed on OpenSea"
+os_top_collection_index_2 = os_top_collection_index_2[os_top_collection_index_2['name'].str.contains('CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+
+# Select only the required columns
+os_top_collection_index_2 = os_top_collection_index_2[['name', 'total_volume', 'total_num_trades', 'total_unique_buyers']]
+
+# Rename the columns
+os_top_collection_index_2.columns = ['name', 'volume', 'num_trades', 'unique_buyers']
+
+# Group the data by Collection Name and sum the number of trades
+os_top_collection_index_num_trades = os_top_collection_index_2.groupby('name')['num_trades'].sum()
+
+# Sort the data in alphabetical order to match the other chart
+os_top_collection_index_num_trades = os_top_collection_index_num_trades.sort_index()
+
+# Visualize Open Sea's top collections by number of trades
+side_2 = os_top_collection_index_num_trades.hvplot.bar(
+    title = 'Open Sea Top Collections Number of Trades January 2021 - Present',
+    rot = 90, 
+    height = 700, 
+    width = 1000,  
+    xlabel = "Collection Name",
+    ylabel = "Number of Trades",
+    yformatter='%.2f',
+    color = 'green'
+)
+
+# Combine the two Visuals
+side_by_side = side_1 + side_2
 
 # Row D
 d1, d2, d3, d4 = st.columns(4)
-with d1:
-    st.markdown('### NFT Market Volume')
-    st.bokeh_chart(hv.render(vol_eth_visual, backend='bokeh'))
+with d3:
+    st.markdown('### Open Sea Top Ten Collections by Volume and Number of Trades')
+    st.bokeh_chart(hv.render(side_by_side, backend='bokeh'))
     with st.expander("See explanation"):
-        st.write("""This chart shows the total volume (in ETH) of all NFT collections traded from January 2021 to present day. You can see from January 1st, 2021 to January 31st, 2022 the NFT market grew in volume by 128,792%. The total volume of the NFT Market at its peak traded over $820 million on a single day. A line of best fit would clearly demonstrate a growing market as time progresses.""")
-            
+        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating how concentrated and young the NFT market really is.""")

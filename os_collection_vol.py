@@ -67,19 +67,6 @@ os_top_collection_index_df = os_top_collection_index_df.drop(index=72)
 # Sort the DataFrame by Collection Name
 os_top_collection_index_df = os_top_collection_index_df.sort_values('name')
 
-# Visualize OpenSea's top collections by all time volume
-side_1 = os_top_collection_index_df.hvplot.bar(
-    x='name', 
-    y='total_volume', 
-    rot=90, 
-    height=700, 
-    width=1000, 
-    ylabel = "Volume in ETH", 
-    xlabel = "Collection Name", 
-    title = "OpenSea Top Ten Collections by Volume All Time",
-    yformatter='%.2f'
-)
-
 # Create the 2nd query
 os_top_collection_index_2 = """
 SELECT t.contract_id,
