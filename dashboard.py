@@ -10,6 +10,7 @@ import requests
 import time # For controlling rate limits to APIs
 from PIL import Image # Support for images
 import sqlalchemy
+import altair as alt
 from pathlib import Path
 
 # Libraries needed for Streamlit, and integrating plotting with Plost
@@ -179,7 +180,6 @@ class TwitterClient(object):
 
         return nft_market_vol_df
 
-<<<<<<< HEAD
     def plot_std(self):
         csv_path = Path('./static_data/standard_deviations.csv')
 
@@ -232,7 +232,7 @@ class TwitterClient(object):
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
-=======
+
     def create_os_collection_index(self):
         # Create the query
         os_top_collection_index = """
@@ -368,9 +368,117 @@ class TwitterClient(object):
 
         return os_top_collection_index_num_trades_df
 
-        
->>>>>>> 1d480622f50f1353d042296bddc916368425f666
-    
+    # Define the base time-series chart.
+    def get_chart(self, df):
+	    hover = alt.selection_single(
+		    fields=["year_month_day"],
+		    nearest=True,
+		    on="mouseover",
+		    empty="none",
+	    )
+
+	    lines = (
+		    alt.Chart(df, title="Average Price (ETH)")
+		    .mark_line()
+		    .encode(
+			    x=alt.X("yearmonthdate(year_month_day)", axis=alt.Axis(title="Month/Year")),
+			    y=alt.Y("avg_price", axis=alt.Axis(title="ETH")),
+			    color="collection",
+		    )
+	    )
+
+	    # Draw points on the line, and highlight based on selection
+	    points = lines.transform_filter(hover).mark_circle(size=65)
+
+	    # Draw a rule at the location of the selection
+	    tooltips = (
+		    alt.Chart(df)
+		    .mark_rule()
+		    .encode(
+			    x="year_month_day",
+			    y="avg_price",
+			    opacity=alt.condition(hover, alt.value(0.3), alt.value(0)),
+			    tooltip=[
+				    alt.Tooltip("year_month_day", title="Month/Year"),
+				    alt.Tooltip("avg_price", title="Price (ETH)"),
+			    ]
+		    )
+		    .add_selection(hover)
+	    )
+	    return (lines + points + tooltips).interactive()
+
+
+    def get_average_prices(self):
+        sql_query = f"""
+        SELECT c.name as collection,
+	    DATE_TRUNC('month', t.timestamp) as year_month_day,
+	    AVG(t.avg_price) as avg_price
+        FROM trade t
+        INNER JOIN collection c ON c.contract_id = t.contract_id
+        INNER JOIN network n ON n.network_id = c.network_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name IN ('CryptoPunks', 'BoredApeYachtClub', 'MutantApeYachtClub', 'Otherdeed', 'Azuki', 'CloneX', 'Moonbirds', 'Doodles', 'Meebits', 'Cool Cats', 'BoredApeKennelClub')
+        AND DATE_TRUNC('month', t.timestamp) > '2020-12-31'
+        GROUP BY c.name, DATE_TRUNC('month', t.timestamp)
+        HAVING MIN(avg_price) > 0.0
+        ORDER BY SUM(t.volume)  DESC    
+        """
+        collections_df = pd.read_sql_query(sql_query, con = self.engine) 
+        chart = self.get_chart(collections_df)
+        # Add first annotation
+        ANNOTATION1 = [
+	        ("Sept 30, 2021", "Best month ever for CryptoPunks! 🥳"),
+        ]
+        annotations1_df = pd.DataFrame(ANNOTATION1, columns=["date", "event"])
+        annotations1_df.date = pd.to_datetime(annotations1_df.date)
+        annotations1_df["y"] = 420
+        annotation1_layer = (
+	        alt.Chart(annotations1_df)
+	        .mark_text(size=20, text="⬇", dx=-8, dy=-10, align="left")
+	        .encode(
+		        x="date:T",
+		        y=alt.Y("y:Q"),
+		        tooltip=["event"],
+	        )
+	        .interactive()
+        )
+        # Add second annotation
+        ANNOTATION2 = [
+	        ("Jan 31, 2022", "Highest average price for BoredApeYachtClub!"),
+        ]
+        annotations2_df = pd.DataFrame(ANNOTATION2, columns=["date", "event"])
+        annotations2_df.date = pd.to_datetime(annotations2_df.date)
+        annotations2_df["y"] = 400
+        annotation2_layer = (
+	        alt.Chart(annotations2_df)
+	        .mark_text(size=20, text="⬇", dx=-8, dy=-10, align="left")
+	        .encode(
+		        x="date:T",
+		        y=alt.Y("y:Q"),
+		        tooltip=["event"],
+	        )
+	        .interactive()
+        )
+        # Add third annotation
+        ANNOTATION3 = [
+	        ("April 30, 2022", "NFT Market took a nose dive! 😰"),
+        ]
+        annotations3_df = pd.DataFrame(ANNOTATION3, columns=["date", "event"])
+        annotations3_df.date = pd.to_datetime(annotations3_df.date)
+        annotations3_df["y"] = 80
+        annotation3_layer = (
+	        alt.Chart(annotations3_df)
+	        .mark_text(size=20, text="⬇", dx=-8, dy=-10, align="left")
+	        .encode(
+		        x="date:T",
+		        y=alt.Y("y:Q"),
+		        tooltip=["event"],
+	        )
+	        .interactive()
+        )
+        return (chart + annotation1_layer + annotation2_layer + annotation3_layer).interactive()
+
+
 def main():
     # Create object of TwitterClient Class
     api = TwitterClient()
@@ -532,6 +640,13 @@ def main():
         height = 500,
     )
         
+    # Row C3 (Average Prices by Collection)
+    st.markdown('### Average Prices by Collection')
+    st.altair_chart(
+	    api.get_average_prices(),
+	    use_container_width=True
+    )
+
     # Row C (my sentiment plot, other plots from the team)
     # Adds an "expander" widget below each plot so we can include narrative/story
     d1, d2 = st.columns(2)
