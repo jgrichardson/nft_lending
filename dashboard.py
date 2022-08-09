@@ -439,7 +439,7 @@ def main():
             height = 300,
         )
         with st.expander("See analysis"):
-            st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear from the data that the top ten collections continue to trade at higher highs every time there is an interest spike in the NFT market.""") 
+            st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear that the voluem traded of the top ten collections continues to increase every time there is an interest spike in the NFT market. Additionally if you compare the top ten collectins volume with the overall NFT market volume on each peak you will find on average that Open Sea's Top Ten Collections make up 72% of the total market volume.""") 
     
     # Insert a spacer
     st.markdown('#')
