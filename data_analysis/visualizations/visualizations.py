@@ -29,6 +29,11 @@ def plot_std():
 
 
 def plot_index():
+    """
+    Returns a sns heatmap object.
+    Needs to be compiled into a streamlit object.
+
+    """
     csv_path = Path('./top_collections_data.csv')
     
     index = pd.read_csv(csv_path)
