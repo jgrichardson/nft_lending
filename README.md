@@ -48,7 +48,7 @@ This project seeks to perform various analyses to determine the viability of NFT
 ```
   database\ddl.py
   database\dml.py
----
+```
 
 2. Modify the period, number of contracts, and number of tokens per contract variables for data extraction from the Rarify API.  Then run the following Python script:
 
