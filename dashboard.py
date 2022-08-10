@@ -765,7 +765,7 @@ def main():
         st.markdown("### Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
         api.plot_mc_sim()
     with g2: 
-        st.markdown("### Portfolio Consists of the following collections: CryptoPunks, Clonex, doodles, Neotokyo, mfers")
+        st.markdown("### Portfolio Data")
         st.write(api.mc_sim_describe())
     with st.expander("See analysis"):
         st.write("""
