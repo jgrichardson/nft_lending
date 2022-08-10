@@ -342,7 +342,8 @@ class TwitterClient(object):
         INNER JOIN trade t ON t.contract_id = c.contract_id
         INNER JOIN network n ON n.network_id = c.network_id
         WHERE n.network_id = 'ethereum' 
-        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit')
+        AND c.name NOT IN ('','New 0x495f947276749Ce646f68AC8c248420045cb7b5eLock', 'pieceofshit', 'Uniswap V3 Positions NFT-V1','More Loot',
+                        'NFTfi Promissory Note','dementorstownwtf','ShitBeast','mcgoblintownwtf','LonelyPop','Pablos','For the Culture','Hype Pass', 'Moonbirds Oddities', 'AIMoonbirds', 'Bound NFT CloneX')
         GROUP BY c.contract_id, c.name
         HAVING MAX(avg_price) > 0
         ORDER BY SUM(t.volume) DESC
@@ -354,11 +355,6 @@ class TwitterClient(object):
         # filter the query for only the top ten collections listed on OpenSea
         os_top_collection_index_df = os_top_collection_index_df[os_top_collection_index_df['name'].str.contains(
             'CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
-
-        # Drop redundant collections
-        os_top_collection_index_df = os_top_collection_index_df.drop(index=52)
-        os_top_collection_index_df = os_top_collection_index_df.drop(index=62)
-        os_top_collection_index_df = os_top_collection_index_df.drop(index=72)
 
         # Select only the required columns
         os_top_collection_index_df = os_top_collection_index_df[['name', 'total_volume']]
@@ -395,7 +391,8 @@ class TwitterClient(object):
         os_top_collection_index_2 = pd.read_sql_query(os_top_collection_index_2, con=self.engine)
 
         # filter the query for only the top ten collections listed on OpenSea"
-        os_top_collection_index_2 = os_top_collection_index_2[os_top_collection_index_2['name'].str.contains('CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
+        os_top_collection_index_2 = os_top_collection_index_2[os_top_collection_index_2['name'].str.contains(
+            'CryptoPunks|BoredApeYachtClub|MutantApeYachtClub|Otherdeed|Azuki|CloneX|Moonbirds|Doodles|Cool Cats|BoredApeKennelClub')==True]
 
         # Select only the required columns
         os_top_collection_index_2 = os_top_collection_index_2[['name', 'total_num_trades']]
