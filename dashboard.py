@@ -767,15 +767,15 @@ def main():
     with g1:
         st.markdown("### Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
         api.plot_mc_sim()
-    with g2: 
-        st.markdown("### Portfolio Data")
-        st.write(api.mc_sim_describe())
-    with st.expander("See analysis"):
-        st.write("""
-        A portfolio consisting of these high ranking 6 collections is projected to yield high returns over the course of a month for a holder.
-        You would expect to see a 30% return based on these projections if you were holding into these collections.
-        """
-        )
+    # with g2: 
+    #     st.markdown("### Portfolio Data")
+    #     st.write(api.mc_sim_describe())
+    # with st.expander("See analysis"):
+    #     st.write("""
+    #     A portfolio consisting of these high ranking 6 collections is projected to yield high returns over the course of a month for a holder.
+    #     You would expect to see a 30% return based on these projections if you were holding into these collections.
+    #     """
+    #     )
     
     # Insert a spacer
     st.markdown('#')
