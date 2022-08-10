@@ -193,7 +193,7 @@ class NftLendingClient(object):
             data = std_devs,
             bar = 'Collections',
             value= 'std_deviations',
-            title = 'NFT Market Standard Deviation over Time',
+            title = 'NFT Collections by Standard Deviation',
             color = 'red',
             width = 500,
             height = 300,
