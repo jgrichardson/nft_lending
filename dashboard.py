@@ -492,7 +492,7 @@ class NftLendingClient(object):
         )
         # Add second annotation
         ANNOTATION2 = [
-	        ("Jan 31, 2022", "Highest average price for BoredApeYachtClub!"),
+	        ("Jan 31, 2022", "Highest average price for Meebits!"),
         ]
         annotations2_df = pd.DataFrame(ANNOTATION2, columns=["date", "event"])
         annotations2_df.date = pd.to_datetime(annotations2_df.date)
@@ -700,7 +700,7 @@ def main():
         use_container_width=True
     )
     with st.expander("See analysis"):
-        st.write("""Need explanation""")
+        st.write("""This chart shows the average price (in ETH) of Open Sea's Top Ten Collections traded from January 2021 to present day. You can see that there were many high points as well as several low points in the NFT market.  On September 30, 2021, CryptoPunks reached an all time high. Then on January 31, 2022, the collection Meebits reached an all time high as well.  However, on April 30, 2022 of this year the whole NFT market took a nose dive!  This very young market has definitely been volatile since it's inception!""")
     
     # Insert a spacer
     st.markdown('#')
