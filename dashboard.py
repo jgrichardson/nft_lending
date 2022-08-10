@@ -722,11 +722,11 @@ def main():
         api.plot_std()
         with st.expander("See explanation"):
             st.write("""
-            The standard deviation and, therefore, the volatility of the collections (by percent change) increases reading from left to right.
-            We would evaluate collections on the left as being better candidates for collateralization and would be eligible to receive loans at a higher 
+            The standard deviation and, therefore, the volatility of some of the top collections (by percent change) are displayed here. 
+            We would evaluate collections with lower standard deviations as being better candidates for collateralization and would be eligible to receive loans at a higher 
             loan-to-value ratio. This is because we would evaluate a lower risk of liquidation for these NFTs. 
             For the beta values, we find little use for this analysis because the deviation of the market as a whole is so vast and can be influenced so much 
-            by the top collections it is hard to gauge the volatility of the market. We see some collections that have a very low beta and we would just those as having 
+            by the top collections it is hard to gauge the volatility of the market. Still, we see some collections that have a very low beta and we would just those as having 
             a high preference for collateralization relative to the market. 
             """)
 
