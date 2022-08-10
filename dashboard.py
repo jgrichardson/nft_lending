@@ -766,6 +766,7 @@ def main():
     
     with g1:
         st.markdown("### Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
+        st.markdown("Collections In this Portfolio: Bored Ape Yacht Club, Crypto Punks, Clonex, Neotokyo, Doodles, mfers")
         api.plot_mc_sim()
     with g2: 
         st.markdown("### Portfolio Data")
