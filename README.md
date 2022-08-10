@@ -53,7 +53,7 @@ This application runs as a python script (dashboard.py) in the Streamlit app fra
 
 Streamlit will open a browser and connect to the application at localhost:8501
 
-![Streamlit Dashboard](images/streamlit_dashboard.png)
+![NFT Lending Dashboard](images/dashboard_screenshot.png)
 
 ---
 
