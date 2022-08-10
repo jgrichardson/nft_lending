@@ -32,7 +32,7 @@ hv.extension('bokeh', logo=False)
 # Set the streamlit page layout to wide (reduces padding on the sides, makes page responsive)
 st.set_page_config(layout="wide")
 
-class TwitterClient(object):
+class NftLendingClient(object):
     '''
     Generic Twitter Class for sentiment analysis.
     '''
@@ -528,8 +528,8 @@ class TwitterClient(object):
 
 
 def main():
-    # Create object of TwitterClient Class
-    api = TwitterClient()
+    # Create object of NftLendingClient Class
+    api = NftLendingClient()
     
     # Set list variable to contain Twitter hashtags for the top 10 collections by trading volume
     #tag_list = ["#meebits", "#cryptopunks", "#terraforms", "#mayc", "#moonbirds", "#azuki", "#bayc", "#dreadfulz", "#clonex", "#beanz"]
@@ -608,10 +608,11 @@ def main():
     df = pd.DataFrame(np.random.randn(7, 2), columns=('Collection Name', 'Contract ID'))
     collections = pd.read_csv('collections.csv')
 
+    
     # Render the grid and the contents for the Streamlit dashboard
     # See https://docs.streamlit.io/library/api-reference/layout
     
-        # Row A (example of a title row)
+    ######################## Row A ##############################
     a1, a2 = st.columns((2,8))
     with a1:
         st.image('images/nft.jpg')
@@ -621,11 +622,11 @@ def main():
     # Insert a spacer
     st.markdown('#')
 
+    ######################## Row B ##############################
     st.header('NFT Market Growth - January 2021 to Present')
-
-    # Row B (General NFT Market Overview)
     b1, b2 = st.columns(2)
-
+    
+    # Pull the data for Row B charts
     data = api.create_nft_market_vol()
     with b1:
         plost.line_chart(
@@ -657,11 +658,11 @@ def main():
     # Insert a spacer
     st.markdown('#')
 
+    ######################## Row C ##############################
     st.header('Open Sea Top Ten Collections - All Time')
-
-    # Row C (OS Top Collection Analysis)
     c1, c2 = st.columns(2)
-    
+   
+    # Pull the data for Row C c1 chart
     data = api.create_top_collections_one()
     with c1:
         plost.bar_chart(
@@ -676,6 +677,7 @@ def main():
     with st.expander("See analysis"):
         st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
     
+    # Pull the data for Row C c2 chart
     data = api.create_top_collections_two()
     with c2:
         plost.bar_chart(
@@ -688,83 +690,118 @@ def main():
         height = 500,
     )
         
-    # Row C3 (Average Prices by Collection)
-    st.markdown('### Average Prices by Collection')
+    # Insert a spacer
+    st.markdown('#')    
+        
+    ######################## Row D ##############################
+    st.header('Average Prices by Collection')
     st.altair_chart(
-	    api.get_average_prices(),
-	    use_container_width=True
+        api.get_average_prices(),
+        use_container_width=True
     )
-
-    # Row C (my sentiment plot, other plots from the team)
-    # Adds an "expander" widget below each plot so we can include narrative/story
-    d1, d2 = st.columns(2)
-    with d1:
-        st.markdown('### Sentiment')
-        st.bokeh_chart(hv.render(my_plot, backend='bokeh'))
-        with st.expander("See explanation"):
-            st.write("""
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
-                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
-            """)
-    with d2:
-        st.markdown('### Top Collections')
-        st.table(df)
-        with st.expander("See explanation"):
-            st.write("""
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-                Phasellus nec arcu mi. Nullam libero dui, auctor eget porta vitae, molestie quis purus. Duis malesuada arcu ex, 
-                mollis ornare ante efficitur vel. Sed pulvinar erat id lectus luctus elementum. Praesent dictum, libero fermentum suscipit eleifend
-            """)
-
-    e1, e2 = st.columns(2)
-    with e1:
-        st.markdown('# Standard Deviation over time for Collections in the top 75 by Volume')
-        api.plot_std_index()
-    with st.expander("See explanation"):
-        st.write("""
-        Something
-        """)
-
-    f1, f2 = st.columns(2)
-    with f1:
-        st.markdown('# Standard Deviation for Collections in the top 75 by Volume')
-        api.plot_std()
-    with st.expander("See explanation"):
-        st.write("""
-        The standard deviation and, therefore, the volatility of the collections (by percent change) increases reading from left to right.
-        We would evaluate collections on the left as being better candidates for collateralization and would be eligible to receive loans at a higher 
-        loan-to-value ratio. This is because we would evaluate a lower risk of liquidation for these NFTs. 
-        For the beta values, we find little use for this analysis because the deviation of the market as a whole is so vast and can be influenced so much 
-        by the top collections it is hard to gauge the volatility of the market. We see some collections that have a very low beta and we would just those as having 
-        a high preference for collateralization relative to the market. 
-        """)
-    with f2:
-        st.markdown('# Betas for collections in the top 75 by Volume')
-        api.plot_betas()
+    with st.expander("See analysis"):
+        st.write("""Need explanation""")
     
-    f3, f4 = st.columns(2)
-    with f3:
+    # Insert a spacer
+    st.markdown('#')
+    
+    ######################## Row E ##############################
+    st.header('Standard Deviation over time for Top 75 Collections')
+    e1, e2 = st.columns(2)
+    
+    with e1:
+        st.markdown('### By Volume')
+        api.plot_std_index()
+        with st.expander("See analysis"):
+            st.write("""
+            Need explanation
+            """)    
+        
+    with e2:
+        st.markdown('### By Volume')
+        api.plot_std()
+        with st.expander("See explanation"):
+            st.write("""
+            The standard deviation and, therefore, the volatility of the collections (by percent change) increases reading from left to right.
+            We would evaluate collections on the left as being better candidates for collateralization and would be eligible to receive loans at a higher 
+            loan-to-value ratio. This is because we would evaluate a lower risk of liquidation for these NFTs. 
+            For the beta values, we find little use for this analysis because the deviation of the market as a whole is so vast and can be influenced so much 
+            by the top collections it is hard to gauge the volatility of the market. We see some collections that have a very low beta and we would just those as having 
+            a high preference for collateralization relative to the market. 
+            """)
+
+    # Insert a spacer
+    st.markdown('#')
+    
+    ######################## Row F ##############################
+    
+    st.header('Betas for Top 75 Collections')
+    f1, f2 = st.columns(2)
+    
+    with f1:
+        st.markdown('### by Volume')
+        api.plot_betas()
+        with st.expander("See analysis"):
+            st.write("""
+            Need explanation
+            """)    
+    with f2:
+        st.markdown('### Need Title')
         api.plot_unstoppable_domains()
-    with f4:
-        st.image('./images/heatmap_correlation.png')
-
+        with st.expander("See analysis"):
+            st.write("""
+            Need explanation...
+            """)    
+    
+    # Insert a spacer
+    st.markdown('#')
+    
+    ######################## Row G ##############################
+    
+    st.header('Simulations')
     g1, g2 = st.columns(2)
-
+    
     with g1:
-        st.markdown("# Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
+        st.markdown("### Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
         api.plot_mc_sim()
     with g2: 
-        st.markdown("## Portfolio Consists of the following collections: CryptoPunks, Clonex, doodles, Neotokyo, mfers")
+        st.markdown("### Portfolio Consists of the following collections: CryptoPunks, Clonex, doodles, Neotokyo, mfers")
         st.write(api.mc_sim_describe())
-    with st.expander("See explanation"):
+    with st.expander("See analysis"):
         st.write("""
         A portfolio consisting of these high ranking 6 collections is projected to yield high returns over the course of a month for a holder.
         You would expect to see a 30% return based on these projections if you were holding into these collections.
-
         """
         )
     
+    # Insert a spacer
+    st.markdown('#')
+    
+    ######################## Row H ##############################
+    
+    st.header('Miscellaneous Analyses')
+    h1, h2 = st.columns(2)
+    
+    with h1:
+        st.markdown("### Need Title")
+        st.image('./images/heatmap_correlation.png')
+        with st.expander("See analysis"):
+            st.write("""
+                Need explanation..
+            """)    
+            
+    with h2:
+        st.markdown('### Sentiment Analysis')
+        st.bokeh_chart(hv.render(my_plot, backend='bokeh'))
+        with st.expander("See explanation"):
+            st.write("""
+                This chart shows the results of an analysis of 100 recent tweets for each of the Top 10 collections. Each tweet was categorized as either Positive, Neutral, or Negative, using the Meaningcloud API.
+            """)    
+            
+    # Insert a spacer
+    st.markdown('#')        
+
+# Call main function for program            
 if __name__ == "__main__":
     # calling main function
     main()
