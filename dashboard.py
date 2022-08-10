@@ -653,7 +653,7 @@ def main():
             height = 300,
         )
         with st.expander("See analysis"):
-            st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear that the voluem traded of the top ten collections continues to increase every time there is an interest spike in the NFT market. Additionally if you compare the top ten collectins volume with the overall NFT market volume on each peak you will find on average that Open Sea's Top Ten Collections make up 72% of the total market volume.""") 
+            st.write("""This chart shows the total volume (in ETH) of Open Sea's Top Ten Collections traded over time. It is clear that the volume traded of the top ten collections continues to increase every time there is an interest spike in the NFT market. Additionally if you compare the top ten collections volume with the overall NFT market volume, on each peak you will find on average that Open Sea's Top Ten Collections make up 72% of the total market volume.""") 
     
     # Insert a spacer
     st.markdown('#')
@@ -675,7 +675,7 @@ def main():
             height = 500,
     )        
     with st.expander("See analysis"):
-        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
+        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top four collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
     
     # Pull the data for Row C c2 chart
     data = api.create_top_collections_two()
