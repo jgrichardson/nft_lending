@@ -41,7 +41,23 @@ This project seeks to perform various analyses to determine the viability of NFT
   RARIFY_API_KEY=<Insert your Rarify API key> Obtain key at [Rarify API](https://docs.rarify.tech/get-started/)
 ```
 
+## DATABASE INSTALLATION
+
+1. Install the database schema and system data onto a PostgreSQL database by executing the following Python scripts:
+
+```
+  database\ddl.py
+  database\dml.py
 ---
+
+2. Modify the period, number of contracts, and number of tokens per contract variables for data extraction from the Rarify API.  Then run the following Python script:
+
+```
+  extract_transform_load\etl.py
+```
+
+3. Schedule the etl.py script to run nightly to keep the database updated with the most current information available from the Rarify API.
+
 
 ## USAGE
 
