@@ -186,11 +186,21 @@ class TwitterClient(object):
     def plot_std(self):
         csv_path = Path('./static_data/standard_deviations.csv')
 
-        std_devs = pd.read_csv(csv_path, index_col="Collections")
+        std_devs = pd.read_csv(csv_path)
 
-        plot = std_devs.hvplot(kind='bar', color='red').opts(xrotation=90)
+        # plot = std_devs.hvplot(kind='bar', color='red').opts(xrotation=90)
+        plost_chart = plost.bar_chart(
+            data = std_devs,
+            bar = 'Collections',
+            value= 'std_deviations',
+            title = 'NFT Market Standard Deviation over Time',
+            color = 'red',
+            width = 500,
+            height = 300,
+        )     
         
-        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+        # return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+        return plost_chart
 
     def plot_std_index(self):
         csv_path = Path('./static_data/std_devs_top_collections_index.csv')
@@ -201,14 +211,42 @@ class TwitterClient(object):
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
+    def plot_unstoppable_domains(self):
+        csv_path = Path('./static_data/unstoppable_domains.csv')
+
+        unstoppable_domains_df = pd.read_csv(csv_path)
+
+        plost_chart = plost.line_chart(
+            data = unstoppable_domains_df,
+            x = 'time',
+            y = 'avg_price',
+            title = 'Unstoppable Domains Average Price over Time',
+            color = 'blue',
+            width = 500,
+            height = 300,
+        ) 
+
+        return plost_chart
+
     def plot_betas(self):
         csv_path = Path('./static_data/betas.csv')
 
-        beta_values = pd.read_csv(csv_path, index_col="Collections")
+        beta_values = pd.read_csv(csv_path)
 
-        plot = beta_values.tail(20).hvplot(kind="bar").opts(xrotation=90)
+        plost_chart = plost.bar_chart(
+            data = beta_values,
+            bar = 'Collections',
+            value= 'Betas',
+            title = 'NFT Market Betas For Top Collections',
+            color = 'blue',
+            width = 500,
+            height = 500,
+        ) 
 
-        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+        # plot = beta_values.tail(20).hvplot(kind="bar").opts(xrotation=90)
+
+        # return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+        return beta_values
 
 
     def plot_index(self):
@@ -234,6 +272,14 @@ class TwitterClient(object):
         plot = cum_returns.hvplot(ylabel="Percent Increase", xlabel="Time")
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
+
+    def mc_sim_describe(self):
+        csv_path = Path('./static_data/mc_cum_return.csv')
+
+        cum_returns = pd.read_csv(csv_path)
+
+        return cum_returns.describe()
+
 
 
     def create_os_collection_index(self):
@@ -615,33 +661,33 @@ def main():
     st.header('Open Sea Top Ten Collections - All Time')
 
     # Row C (OS Top Collection Analysis)
-    c1, c2 = st.columns(2)
+    # c1, c2 = st.columns(2)
     
-    data = api.create_top_collections_one()
-    with c1:
-        plost.bar_chart(
-            data = data,
-            bar = 'Collection Name',
-            value = 'Volume in ETH',
-            title = "Volume in ETH",
-            color = 'blue',
-            width = 500,
-            height = 500,
-    )        
-    with st.expander("See analysis"):
-        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
+    # data = api.create_top_collections_one()
+    # with c1:
+    #     plost.bar_chart(
+    #         data = data,
+    #         bar = 'Collection Name',
+    #         value = 'Volume in ETH',
+    #         title = "Volume in ETH",
+    #         color = 'blue',
+    #         width = 500,
+    #         height = 500,
+    # )        
+    # with st.expander("See analysis"):
+    #     st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
     
-    data = api.create_top_collections_two()
-    with c2:
-        plost.bar_chart(
-        data = data,
-        bar = 'Collection Name',
-        value = 'Number of Trades',
-        title = 'Number of Trades',
-        color = 'green',
-        width = 500,
-        height = 500,
-    )
+    # data = api.create_top_collections_two()
+    # with c2:
+    #     plost.bar_chart(
+    #     data = data,
+    #     bar = 'Collection Name',
+    #     value = 'Number of Trades',
+    #     title = 'Number of Trades',
+    #     color = 'green',
+    #     width = 500,
+    #     height = 500,
+    # )
         
     # Row C3 (Average Prices by Collection)
     st.markdown('### Average Prices by Collection')
@@ -697,6 +743,10 @@ def main():
     with f2:
         st.markdown('# Betas for collections in the top 75 by Volume')
         api.plot_betas()
+    
+    f3, f4 = st.columns(2)
+    with f3:
+        api.plot_unstoppable_domains()
 
     g1, g2 = st.columns(2)
 
@@ -704,8 +754,14 @@ def main():
         st.markdown("# Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
         api.plot_mc_sim()
     with g2: 
-        st.markdown("# Portfolio Consists of the following collections: /n *CryptoPunks /n *clonex /n *doodles /n *neotokyo /n *mfers")
-    
+        st.markdown("## Portfolio Consists of the following collections: /n *CryptoPunks /n *clonex /n *doodles /n *neotokyo /n *mfers")
+        st.write(api.mc_sim_describe())
+    with st.expander("See explanation"):
+        st.write("""
+        A portfolio consisting of these high ranking 6 collections is projected to yield high returns over the course of a month for a holder.
+
+        """
+        )
     
 if __name__ == "__main__":
     # calling main function
