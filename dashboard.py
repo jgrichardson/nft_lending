@@ -743,14 +743,17 @@ def main():
         api.plot_betas()
         with st.expander("See analysis"):
             st.write("""
-            Need explanation
+            We see here a wide discrepancy in Beta values. This is a good example of why it is tricky to get a good sense of volatility in such an illiquid market.
+            We see that one collection, Unstoppable Domains, is such an outlier that it effects the entire basket of NFT collections. Its movements are strongly counter to the market.
+
             """)    
     with f2:
-        st.markdown('### Need Title')
+        st.markdown('### Unstoppable Domains Average Price Over Time')
         api.plot_unstoppable_domains()
         with st.expander("See analysis"):
             st.write("""
-            Need explanation...
+            If we look at the average price of the Unstoppable Domains collection we see why the data in the Betas series behaves the way it does. Unstoppable Domains has massive swings 
+            where its average price fluctuates by a magnitude of thousands. With large swings like that it will affect the covariance of the entire data. 
             """)    
     
     # Insert a spacer
@@ -783,11 +786,14 @@ def main():
     h1, h2 = st.columns(2)
     
     with h1:
-        st.markdown("### Need Title")
+        st.markdown("### Correlation for Statistical Measurements")
         st.image('./images/heatmap_correlation.png')
         with st.expander("See analysis"):
             st.write("""
-                Need explanation..
+                Here we take a look at which statistics correlate highly to other statistics. In doing so we can gain an understanding
+                of which factors we can analyze to predict the volatility of an asset. Mainly, we want to see the correlations for standard deviation and percent change.
+                We see that minimum price and average price have relatively low correlations to those two but max price and volume have relatively higher ones. If we were analyzing a collections volatility,
+                we could predict that maximum price and volume would have higher correlations to volatility than average price and minimum price. 
             """)    
             
     with h2:
