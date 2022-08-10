@@ -214,7 +214,9 @@ class TwitterClient(object):
     def plot_unstoppable_domains(self):
         csv_path = Path('./static_data/unstoppable_domains.csv')
 
-        unstoppable_domains_df = pd.read_csv(csv_path)
+        unstoppable_domains_df = pd.read_csv(csv_path, parse_dates=True, infer_datetime_format=True)
+
+        # unstoppable_domains_df = unstoppable_domains_df.reset_index(inplace=True)
 
         plost_chart = plost.line_chart(
             data = unstoppable_domains_df,
@@ -269,7 +271,7 @@ class TwitterClient(object):
 
         cum_returns = pd.read_csv(csv_path)
 
-        plot = cum_returns.hvplot(ylabel="Percent Increase", xlabel="Time")
+        plot = cum_returns.hvplot(ylabel="Percent Increase", xlabel="Time (Days)")
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
@@ -612,7 +614,7 @@ def main():
         # Row A (example of a title row)
     a1, a2 = st.columns((2,8))
     with a1:
-        st.image('images/sample_logo.png')
+        st.image('images/nft.jpg')
     with a2:
         st.markdown('# NFT Lending Analysis')
     
@@ -658,33 +660,33 @@ def main():
     st.header('Open Sea Top Ten Collections - All Time')
 
     # Row C (OS Top Collection Analysis)
-    # c1, c2 = st.columns(2)
+    c1, c2 = st.columns(2)
     
-    # data = api.create_top_collections_one()
-    # with c1:
-    #     plost.bar_chart(
-    #         data = data,
-    #         bar = 'Collection Name',
-    #         value = 'Volume in ETH',
-    #         title = "Volume in ETH",
-    #         color = 'blue',
-    #         width = 500,
-    #         height = 500,
-    # )        
-    # with st.expander("See analysis"):
-    #     st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
+    data = api.create_top_collections_one()
+    with c1:
+        plost.bar_chart(
+            data = data,
+            bar = 'Collection Name',
+            value = 'Volume in ETH',
+            title = "Volume in ETH",
+            color = 'blue',
+            width = 500,
+            height = 500,
+    )        
+    with st.expander("See analysis"):
+        st.write("""These two charts compare the total volume (in ETH) and the number of trades of Open Sea's top ten NFT collections. It is interesting to note that the all time volume for just ten NFT collections is 4,201,212ETH at today's current prices of Ether that's $7.14 Billion. Aditionally the top 4 collections by volume make up almost 70% of the total volume across the top ten collections, clearly demonstrating the extreme difference in value of the top 4 collections -vs- the other six. Three of the top four collections also were released by the same creators (Yuga Labs, demonstrating a concentrated and young market).""")
     
-    # data = api.create_top_collections_two()
-    # with c2:
-    #     plost.bar_chart(
-    #     data = data,
-    #     bar = 'Collection Name',
-    #     value = 'Number of Trades',
-    #     title = 'Number of Trades',
-    #     color = 'green',
-    #     width = 500,
-    #     height = 500,
-    # )
+    data = api.create_top_collections_two()
+    with c2:
+        plost.bar_chart(
+        data = data,
+        bar = 'Collection Name',
+        value = 'Number of Trades',
+        title = 'Number of Trades',
+        color = 'green',
+        width = 500,
+        height = 500,
+    )
         
     # Row C3 (Average Prices by Collection)
     st.markdown('### Average Prices by Collection')
@@ -744,6 +746,8 @@ def main():
     f3, f4 = st.columns(2)
     with f3:
         api.plot_unstoppable_domains()
+    with f4:
+        st.image('./images/heatmap_correlation.png')
 
     g1, g2 = st.columns(2)
 
@@ -751,11 +755,12 @@ def main():
         st.markdown("# Monte Carlo Simulation For 6 Collection Portfolio Over 1 Month")
         api.plot_mc_sim()
     with g2: 
-        st.markdown("## Portfolio Consists of the following collections: /n *CryptoPunks /n *clonex /n *doodles /n *neotokyo /n *mfers")
+        st.markdown("## Portfolio Consists of the following collections: CryptoPunks, Clonex, doodles, Neotokyo, mfers")
         st.write(api.mc_sim_describe())
     with st.expander("See explanation"):
         st.write("""
         A portfolio consisting of these high ranking 6 collections is projected to yield high returns over the course of a month for a holder.
+        You would expect to see a 30% return based on these projections if you were holding into these collections.
 
         """
         )
