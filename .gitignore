@@ -5,6 +5,7 @@ __pycache__/
 .env
 # C extensions
 *.so
+streamlit/secrets.toml
 .DS_Store
 # Distribution / packaging
 .Python
