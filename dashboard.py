@@ -217,7 +217,7 @@ class NftLendingClient(object):
         unstoppable_domains_df = pd.read_csv(csv_path, index_col='time', parse_dates=True, infer_datetime_format=True)
 
         # unstoppable_domains_df = unstoppable_domains_df.reset_index(inplace=True)
-        plot = unstoppable_domains_df.hvplot(ylabel="Unstoppable Domains Average Price over Time").opts(xrotation=90)
+        plot = unstoppable_domains_df['avg_price'].hvplot(ylabel="Average Price", title="Unstoppable Domains Price Action over time").opts(xrotation=90)
 
 
         # plost_chart = plost.line_chart(
