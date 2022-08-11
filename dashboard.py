@@ -859,7 +859,6 @@ def main():
     
     # Get data and create plots
     result_df = api.query_correlation()
-    st.write(result_df)
     
     chart1_df = api.plot_collection_max_price(result_df)
     chart2_df = api.plot_rarity_score(result_df)
@@ -871,9 +870,9 @@ def main():
     
     with i1:
         st.markdown("### Correlation of Max Price")
-        chart1_df.hvplot.bar(
-            height=500,
-            width=1000,
+        chart_1 = chart1_df.hvplot.bar(
+            # height=500,
+            # width=1000,
             ylabel= " ETH ",
             xlabel="Collection Name",
             x='collection_name',
@@ -883,11 +882,13 @@ def main():
             color='orange'
         ).opts(yformatter='%.0f')
         
+        st.bokeh_chart(hv.render(chart_1, backend='bokeh'))
+        
     with i2:
         st.markdown("### Correlation of Rarity")
-        chart2_df.hvplot.bar(
-        height=500,
-            width=1000,
+        chart_2 = chart2_df.hvplot.bar(
+        # height=500,
+        #     width=1000,
             ylabel= " Rarity Score ",
             xlabel="Collection Name",
             x='collection_name',
@@ -895,6 +896,8 @@ def main():
             rot=90,
             color='green',
         ).opts(yformatter='%.0f')
+        
+        st.bokeh_chart(hv.render(chart_2, backend='bokeh'))
 
 # Call main function for program            
 if __name__ == "__main__":
