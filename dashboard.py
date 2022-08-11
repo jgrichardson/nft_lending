@@ -214,21 +214,24 @@ class NftLendingClient(object):
     def plot_unstoppable_domains(self):
         csv_path = Path('./static_data/unstoppable_domains.csv')
 
-        unstoppable_domains_df = pd.read_csv(csv_path, parse_dates=True, infer_datetime_format=True)
+        unstoppable_domains_df = pd.read_csv(csv_path, index_col='time', parse_dates=True, infer_datetime_format=True)
 
         # unstoppable_domains_df = unstoppable_domains_df.reset_index(inplace=True)
+        plot = unstoppable_domains_df.hvplot(ylabel="Unstoppable Domains Average Price over Time").opts(xrotation=90)
 
-        plost_chart = plost.line_chart(
-            data = unstoppable_domains_df,
-            x = 'time',
-            y = 'avg_price',
-            title = 'Unstoppable Domains Average Price over Time',
-            color = 'blue',
-            width = 500,
-            height = 466,
-        ) 
 
-        return plost_chart
+        # plost_chart = plost.line_chart(
+        #     data = unstoppable_domains_df,
+        #     x = 'time',
+        #     y = 'avg_price',
+        #     title = 'Unstoppable Domains Average Price over Time',
+        #     color = 'blue',
+        #     width = 500,
+        #     height = 466,
+        # ) 
+
+        # return plost_chart
+        return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
     def plot_betas(self):
         csv_path = Path('./static_data/betas.csv')
@@ -739,7 +742,7 @@ def main():
     f1, f2 = st.columns(2)
     
     with f1:
-        st.markdown('### by Volume')
+        # st.markdown('### by Volume')
         api.plot_betas()
         with st.expander("See analysis"):
             st.write("""
@@ -748,7 +751,7 @@ def main():
 
             """)    
     with f2:
-        st.markdown('### Unstoppable Domains Average Price Over Time')
+        # st.markdown('### Unstoppable Domains Average Price Over Time')
         api.plot_unstoppable_domains()
         with st.expander("See analysis"):
             st.write("""
