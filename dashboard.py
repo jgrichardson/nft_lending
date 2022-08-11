@@ -207,7 +207,7 @@ class NftLendingClient(object):
 
         std_devs = pd.read_csv(csv_path, index_col='time', infer_datetime_format=True, parse_dates=True)
 
-        plot = std_devs.hvplot(ylabel="Standard Deviation").opts(xrotation=90)
+        plot = std_devs.hvplot(ylabel="Standard Deviation", title="NFT Market Standard Deviations over Time").opts(xrotation=90)
         
         return st.bokeh_chart(hv.render(plot, backend='bokeh'))
 
