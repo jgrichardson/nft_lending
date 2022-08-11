@@ -225,7 +225,7 @@ class NftLendingClient(object):
             title = 'Unstoppable Domains Average Price over Time',
             color = 'blue',
             width = 500,
-            height = 500,
+            height = 475,
         ) 
 
         return plost_chart
