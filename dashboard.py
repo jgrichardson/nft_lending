@@ -202,6 +202,52 @@ class NftLendingClient(object):
         # return st.bokeh_chart(hv.render(plot, backend='bokeh'))
         return plost_chart
 
+    def query_correlation(self):
+        sql_query = """
+        SELECT t.contract_id,
+               c.name as collection_name,
+               c.address,
+               tok.token_id,
+               tok.id_num,
+               tok.name as token_name,
+               tok.rarity_score,
+               tok.ranking,
+               ct.average_token_rarity_score_for_collection,
+               MIN(t.avg_price) as avg_price_for_collection,
+               MIN(t.min_price) as min_price_for_collection,
+               MAX(t.max_price) as max_price_for_collection,
+               SUM(t.volume) as total_volume_for_collection,
+               SUM(t.num_trades) as total_num_trades_for_collection,
+               SUM(t.unique_buyers) as total_unique_buyers_for_collection
+        FROM network n
+        INNER JOIN collection c ON c.network_id = n.network_id
+        INNER JOIN (SELECT contract_id, ROUND(AVG(rarity_score), 2) AS average_token_rarity_score_for_collection FROM token GROUP BY contract_id) ct ON ct.contract_id = c.contract_id
+        INNER JOIN token tok ON tok.contract_id = ct.contract_id
+        INNER JOIN trade t ON t.contract_id = c.contract_id
+        WHERE n.network_id = 'ethereum' 
+        AND c.name IN ('CryptoPunks', 'BoredApeYachtClub', 'MutantApeYachtClub', 'Otherdeed', 'Azuki', 'CloneX', 'Moonbirds', 'Doodles', 'Meebits', 'Cool Cats', 'BoredApeKennelClub')
+        AND tok.ranking = 1
+        GROUP BY t.contract_id, c.name, c.address, tok.token_id, tok.id_num, tok.name, tok.rarity_score, tok.ranking, ct.average_token_rarity_score_for_collection
+        HAVING MIN(t.avg_price) > 0.0
+        ORDER BY SUM(t.volume)  DESC
+        """
+        df = pd.read_sql_query(sql_query, con = self.engine)
+        return df
+
+    
+    def plot_collection_max_price(self, df):
+        
+        collection_max_price_df = df.drop(columns=['contract_id', 'address', 'token_id', 'id_num', 'rarity_score', 'token_name', 'ranking', 'average_token_rarity_score_for_collection', 'avg_price_for_collection', 'min_price_for_collection', 'total_volume_for_collection', 'total_num_trades_for_collection', 'total_unique_buyers_for_collection'])
+        
+        return collection_max_price_df
+        
+    def plot_rarity_score(self, df):
+        
+        collection_rarity_score_df = df.drop(columns=['contract_id', 'address', 'token_id', 'id_num', 'token_name', 'ranking', 'average_token_rarity_score_for_collection', 'max_price_for_collection', 'avg_price_for_collection', 'min_price_for_collection', 'total_volume_for_collection', 'total_num_trades_for_collection', 'total_unique_buyers_for_collection'])
+        
+        return collection_rarity_score_df
+        
+
     def plot_std_index(self):
         csv_path = Path('./static_data/std_devs_top_collections_index.csv')
 
@@ -809,11 +855,50 @@ def main():
             """)    
             
     # Insert a spacer
-    st.markdown('#')        
+    st.markdown('#')
+    
+    # Get data and create plots
+    result_df = api.query_correlation()
+    st.write(result_df)
+    
+    chart1_df = api.plot_collection_max_price(result_df)
+    chart2_df = api.plot_rarity_score(result_df)
+    
+    ######################## Row I ##############################
+    
+    st.header('Correlations of Max Price and Rarity')
+    i1, i2 = st.columns(2)
+    
+    with i1:
+        st.markdown("### Correlation of Max Price")
+        chart1_df.hvplot.bar(
+            height=500,
+            width=1000,
+            ylabel= " ETH ",
+            xlabel="Collection Name",
+            x='collection_name',
+            y='max_price_for_collection',
+            title="Price Paid of most Expensive NFT by Top 10 Collection",
+            rot=90,
+            color='orange'
+        ).opts(yformatter='%.0f')
+        
+    with i2:
+        st.markdown("### Correlation of Rarity")
+        chart2_df.hvplot.bar(
+        height=500,
+            width=1000,
+            ylabel= " Rarity Score ",
+            xlabel="Collection Name",
+            x='collection_name',
+            title="Rarity Score of Rarest NFT by Top 10 Collection",
+            rot=90,
+            color='green',
+        ).opts(yformatter='%.0f')
 
 # Call main function for program            
 if __name__ == "__main__":
     # calling main function
     main()
 
-
+    
