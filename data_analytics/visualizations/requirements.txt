@@ -1,6 +1,0 @@
-streamlit
-pandas
-python-dotenv
-hvplot
-holoviews
-plost
