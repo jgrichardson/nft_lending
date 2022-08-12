@@ -37,7 +37,6 @@ num_contracts = 100
 num_tokens = 100
 
 
-
 def api_request(url, key):  
     response_json = ''
     try:
@@ -204,106 +203,113 @@ def get_trades(obj_json):
     return trades_df
 
 
+def main():
 
-# Get list of top 100 contracts by highest volume
-contracts_url = f"https://api.rarify.tech/data/contracts/?filter[network]=ethereum&page[limit]={num_contracts}&sort=-insights.volume"
-
-
-# Make API request call to Rarify to get a list of top 100 collections
-contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
-
-if not contracts_df.empty:
-    # Get a list of contract_ids from the collection
-    contracts_list = contracts_df.contract_id.values.tolist()
-
-    # Use the following code to obtain the smart floor price in the collection
-    smart_floor_url = f"https://api.rarify.tech/data/contracts/contract_id/smart-floor-price"
-
-    # Make API request call to Rarify to get the smart floor price for each collection of what
-    # an NFT's floor price within the collection would sell for in the open market.
-    contracts_df['smart_floor_price'] = [get_smart_floor_price(api_request(smart_floor_url.replace('contract_id', i), rarify_api_key)) for i in contracts_df['contract_id']]
-
-    # Make call to db.save_collection() passing in a list of contracts 
-    # and store the data in the database
-    db.save_collection(contracts_df)
-
-    # Loop through contracts and get trade information and store data for each contract id
-    for contract_id in contracts_list:    
-        # Get the trade data for a specific contract from the past period
-        trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
-        # Make API request call to Rarify to get trades data
-        trades_df = get_trades(api_request(trades_url, rarify_api_key))
-
-        if not trades_df.empty:
-            trades_df["contract_id"] = contract_id
-            trades_df["period"] = period
-            trades_df["type"] = "collection"
-            trades_df["api_id"] = 'rarify'
-            # Make call db.save_trade() passing in a list of trades history data per contract
-            trades_df.set_index("time")
-            db.save_trade(trades_df)
-
-    tokens_list = []
-    
-    # Loop through contracts and get tokens associated with the collection.  Then store
-    # the data for each token.
-    for contract_id in contracts_list:
-        # Get list of tokens
-        tokens_url = f"https://api.rarify.tech/data/tokens/?page[limit]={num_tokens}&filter[contract]={contract_id}&sort=-relevancy"
-
-        # Make API request call to Rarify
-        tokens_df = get_tokens_by_contract_id(api_request(tokens_url, rarify_api_key))
-
-        if not tokens_df.empty:
-            # Set contract_id for list of tokens retrieved
-            tokens_df["contract_id"] = contract_id
-            # Make call to db.save_token(df) passing in a dataframe of tokens per contract
-            db.save_token(tokens_df)
-
-            # Get a list of token_ids from the list of tokens
-            tokens_list.append(tokens_df.token_id.values.tolist())
+    # Get list of top 100 contracts by highest volume
+    contracts_url = f"https://api.rarify.tech/data/contracts/?filter[network]=ethereum&page[limit]={num_contracts}&sort=-insights.volume"
 
 
-    for token in tokens_list:
-        for token_id in token:
-            logger.info(f"TokenAttributes for token_id is {token_id}")
-            # Make API request call to Rarify to get token attributes i.e. the rarity percentage, the overall trait value, trait_type, etc. per coin
-            token_url = f"https://api.rarify.tech/data/tokens/{token_id}/?include=attributes_stats"
-            token_attributes_df = get_token_attributes(api_request(token_url, rarify_api_key))
+    # Make API request call to Rarify to get a list of top 100 collections
+    contracts_df = get_contracts(api_request(contracts_url, rarify_api_key))
 
-            if not token_attributes_df.empty:     
-                token_attributes_df["token_id"] = token_id  
-                # Make call to db.save_token_attributes() passing in a dataframe of token attributes per token
-                db.save_token_attributes(token_attributes_df)
+    if not contracts_df.empty:
+        # Get a list of contract_ids from the collection
+        contracts_list = contracts_df.contract_id.values.tolist()
 
+        # Use the following code to obtain the smart floor price in the collection
+        smart_floor_url = f"https://api.rarify.tech/data/contracts/contract_id/smart-floor-price"
 
-    for token in tokens_list:
-        for token_id in token:
-            logger.info(f"TokenTrades for token_id is {token_id}")
-            # Make API request call to Rarify to get trades per token
-            trade_url = f"https://api.rarify.tech/data/tokens/{token_id}/insights/{period}"
-            trades_df = get_trades(api_request(trade_url, rarify_api_key))
-                
+        # Make API request call to Rarify to get the smart floor price for each collection of what
+        # an NFT's floor price within the collection would sell for in the open market.
+        contracts_df['smart_floor_price'] = [get_smart_floor_price(api_request(smart_floor_url.replace('contract_id', i), rarify_api_key)) for i in contracts_df['contract_id']]
+
+        # Make call to db.save_collection() passing in a list of contracts 
+        # and store the data in the database
+        db.save_collection(contracts_df)
+
+        # Loop through contracts and get trade information and store data for each contract id
+        for contract_id in contracts_list:    
+            # Get the trade data for a specific contract from the past period
+            trades_url = f"https://api.rarify.tech/data/contracts/{contract_id}/insights/{period}"
+            # Make API request call to Rarify to get trades data
+            trades_df = get_trades(api_request(trades_url, rarify_api_key))
+
             if not trades_df.empty:
-                trades_df["contract_id"] = token_id
+                trades_df["contract_id"] = contract_id
                 trades_df["period"] = period
-                trades_df["type"] = "token"
+                trades_df["type"] = "collection"
                 trades_df["api_id"] = 'rarify'
+                # Make call db.save_trade() passing in a list of trades history data per contract
                 trades_df.set_index("time")
-                # Make call db.save_trade() passing in a list of trades history data per token                    
-                db.save_trade(trades_df)        
+                db.save_trade(trades_df)
+
+        tokens_list = []
+        
+        # Loop through contracts and get tokens associated with the collection.  Then store
+        # the data for each token.
+        for contract_id in contracts_list:
+            # Get list of tokens
+            tokens_url = f"https://api.rarify.tech/data/tokens/?page[limit]={num_tokens}&filter[contract]={contract_id}&sort=-relevancy"
+
+            # Make API request call to Rarify
+            tokens_df = get_tokens_by_contract_id(api_request(tokens_url, rarify_api_key))
+
+            if not tokens_df.empty:
+                # Set contract_id for list of tokens retrieved
+                tokens_df["contract_id"] = contract_id
+                # Make call to db.save_token(df) passing in a dataframe of tokens per contract
+                db.save_token(tokens_df)
+
+                # Get a list of token_ids from the list of tokens
+                tokens_list.append(tokens_df.token_id.values.tolist())
 
 
-# Get list of whales that own the specified contract
-#whales_id = "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
-whales_id = "ethereum:dbfd76af2157dc15ee4e57f3f942bb45ba84af24"
-whales_url = f"https://api.rarify.tech/data/contracts/{whales_id}/whales"
+        for token in tokens_list:
+            for token_id in token:
+                logger.info(f"TokenAttributes for token_id is {token_id}")
+                # Make API request call to Rarify to get token attributes i.e. the rarity percentage, the overall trait value, trait_type, etc. per coin
+                token_url = f"https://api.rarify.tech/data/tokens/{token_id}/?include=attributes_stats"
+                token_attributes_df = get_token_attributes(api_request(token_url, rarify_api_key))
 
-# Get the list of wallets either by ?filter[owner, contract, network, etc]=...
-# Currently returning 404 so maybe the server is no longer up?
-wallets_url = f"https://api.rarify.tech/data/wallets/?filter[network]=ethereum"
+                if not token_attributes_df.empty:     
+                    token_attributes_df["token_id"] = token_id  
+                    # Make call to db.save_token_attributes() passing in a dataframe of token attributes per token
+                    db.save_token_attributes(token_attributes_df)
 
 
+        for token in tokens_list:
+            for token_id in token:
+                logger.info(f"TokenTrades for token_id is {token_id}")
+                # Make API request call to Rarify to get trades per token
+                trade_url = f"https://api.rarify.tech/data/tokens/{token_id}/insights/{period}"
+                trades_df = get_trades(api_request(trade_url, rarify_api_key))
+                    
+                if not trades_df.empty:
+                    trades_df["contract_id"] = token_id
+                    trades_df["period"] = period
+                    trades_df["type"] = "token"
+                    trades_df["api_id"] = 'rarify'
+                    trades_df.set_index("time")
+                    # Make call db.save_trade() passing in a list of trades history data per token                    
+                    db.save_trade(trades_df)        
+
+
+    # Make call db.calculate_token_score_and_ranking() to update rarity scores and token ranking
+    db.calculate_token_score_and_ranking()
+
+
+    # Get list of whales that own the specified contract
+    #whales_id = "ethereum:0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d"
+    whales_id = "ethereum:dbfd76af2157dc15ee4e57f3f942bb45ba84af24"
+    whales_url = f"https://api.rarify.tech/data/contracts/{whales_id}/whales"
+
+    # Get the list of wallets either by ?filter[owner, contract, network, etc]=...
+    # Currently returning 404 so maybe the server is no longer up?
+    wallets_url = f"https://api.rarify.tech/data/wallets/?filter[network]=ethereum"
+
+if __name__ == "__main__":
+    # calling main function
+    main()
 
 
 

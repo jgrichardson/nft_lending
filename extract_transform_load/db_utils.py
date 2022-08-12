@@ -15,7 +15,7 @@ logger = logging.getLogger()
 load_dotenv()
 
 # Retrieve the database settings from .env file
-database_connection_string = os.getenv("DATABASE_URI")
+database_connection_string = os.getenv("DATABASE_URL")
 
 # Retrieve the database schema from .env file
 database_schema = os.getenv("DATABASE_SCHEMA")
@@ -1525,3 +1525,55 @@ def save_data_analysis(df):
             update_data_analysis(df.iloc[row_index])
         else:
             insert_data_analysis(df.iloc[row_index])                    
+
+
+def calculate_token_score_and_ranking():
+    """
+    This function calculates a token's rarity score based on the total sum of it's traits' rarity percentage.
+    It then ranks the token's position within the collection based on it's rarity score.
+
+    """
+
+    # Write updating information to log file
+    logger.info(f"calculate_token_score_and_ranking() function called...") 
+        
+    update_rarity_score = f"""
+    UPDATE {database_schema}.token SET rarity_score = b.rarity_score
+    FROM
+    (SELECT token_id, SUM(rarity_percentage) as rarity_score
+    FROM {database_schema}.token_attribute 
+    GROUP BY token_id) b
+    WHERE token.token_id = b.token_id    
+    """
+
+    #
+    # If rarity_score is zero then set the value to zero because the token has no traits defined.
+    #
+    update_no_rarity_score = f"""
+    UPDATE {database_schema}.token SET rarity_score = 0
+    WHERE rarity_score IS NULL 
+    """
+
+    #
+    # Rank the token's position within the collection based on it's rarity score
+    #
+    update_token_ranking = f"""
+    UPDATE {database_schema}.token
+    SET ranking = tn.rnk
+    FROM (SELECT t.token_id,
+          RANK() OVER (PARTITION BY c.contract_id ORDER BY t.rarity_score DESC) rnk
+          FROM {database_schema}.token t
+          INNER JOIN {database_schema}.collection c ON t.contract_id = c.contract_id) tn
+    WHERE token.token_id = tn.token_id        
+    """
+
+    try:    
+        with engine.connect() as conn:
+            conn.execute(update_rarity_score)
+            conn.execute(update_no_rarity_score)
+            conn.execute(update_token_ranking)
+    except Exception as ex: 
+        logger.debug(update_rarity_score)   
+        logger.debug(update_no_rarity_score)
+        logger.debug(update_token_ranking)
+        logger.error(ex)       
